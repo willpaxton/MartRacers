@@ -17,8 +17,11 @@
   },
   "homepage": "https://github.com/willpaxton/MartRacers#readme",
   "dependencies": {
+    "@socket.io/cluster-adapter": "^0.3.0",
     "express": "^4.22.1",
     "npm": "^11.9.0",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   }
 }
