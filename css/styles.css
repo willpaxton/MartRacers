@@ -1,0 +1,34 @@
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #ffffff;
+}
+
+button {
+  padding: 12px 20px;
+  margin: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#scanner-container {
+  width: 300px;
+  height: 300px;
+  margin: 20px auto;
+  display: none;
+}
+.hero {
+  width: 100%;
+}
+
+.hero-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.barcode-img {
+  width: 150px;
+  margin-top: 20px;
+}
