@@ -1,1 +1,6 @@
 # MartRacers
+Product Vision Statement: For shoppers who need a more entertaining shopping experience when they go to their favorite superstore. The MartRacers Web Application is a Web Application revolving around racing around grocery stores to try to scan certain items the quickest. This is a first-of-its-kind app that has never been done before, and probably won’t be done again.
+Project Goals: [Insert Goals Here]
+Release Plan: [Create New Release Plan]
+Sprint Reports are located in ...
+Kanban board is located in ...
