@@ -31,19 +31,17 @@ Right now, as soon as we finish with our prototype, it will be published as vers
 Test plan, tests performed, and analysis reports:
 Most tests have been automatic so far, as we have still been trying to find a proper way to organize the work for it to actually be automated. It shouldn't be hard to do, the current plan for it is to use Selenium for the following:
 
-Start a lobby
-Have a second join lobby
-Check the items
-Check the items scan barcodes
-Input an incorrect barcode
-Check if it says wrong item
-Input correct items
-Check that player wins
-Check that player loses
+- Start a lobby
+- Have a second join lobby
+- Check the items
+- Check the items scan barcodes
+- Input an incorrect barcode
+- Check if it says wrong item
+- Input correct items
+- Check that player wins
+- Check that player loses
 
-Once this is done, we can make sure that everyone on the team knows how to run the test system, and can test it before pushing to make sure nothing breaks. Besides that, it might be a little bit easier to do manual testing due to the subject of the project, and to do so by having a "test" mode where it picks the same few items, and we can have those barcodes ready for the scan test, and then have the regular gamemode to make sure that the lobby and random items work.
-
-One way it could be done that we were also considering is having one test, and have a setting for semi-auto or auto, with semi-auto grabbing those same items and allowing the user to scan it, or auto grabbing random items and testing it with the barcodes.
+Once this is done, we can make sure that everyone on the team knows how to run the test system, and can test it before pushing to make sure nothing breaks. Besides that, it might be a little bit easier to do manual testing due to the subject of the project, and to do so by having a "test" mode where it picks the same few items, and we can have those barcodes ready for the scan test, and then have the regular gamemode to make sure that the lobby and random items work. One way it could be done that we were also considering is having one test, and have a setting for semi-auto or auto, with semi-auto grabbing those same items and allowing the user to scan it, or auto grabbing random items and testing it with the barcodes.
 
 Change Management Approach:
 During each scrum meeting and sprint transition, group members are allowed to give whatever feedback they have about the project deliverables so far. Along with this, the product owner is allowed to give feedback about each task completed in a sprint.  This allows the team to quickly adjust to feedback and add PBIs to the backlog based on suggested changes to ensure that the product meets the standards needed.  
