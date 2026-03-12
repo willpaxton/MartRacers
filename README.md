@@ -15,7 +15,7 @@ Sprint Reports are located in the main branch under the "Sprint_Reports" folder.
 Kanban board is located under GitHub projects; however, it is inaccessible to people outside of the project team.  This is the state of the Kanban board as of 3/12/2026.
 <img width="1685" height="966" alt="image" src="https://github.com/user-attachments/assets/daaa73cf-d8f9-42e0-84f1-4c1bec322635" />
 
-Source Code: Source code is split into two primary branches, one for front-end development (insert name here) and one for back-end/prototyping (insert name here).  These two branches will be merged in a future sprint as we work towards a final deliverable.  
+Source Code: Source code is split into two primary branches, one for front-end development (FrontEnd) and one for back-end/prototyping (prototype).  These two branches will be merged in a future sprint as we work towards a final deliverable.  
 
 Coding Standards: As most developers are doing their own work in their own parts of the project, no major coding standards have been implemented. As we begin to merge parts of the project, the team will discuss coding standards and agree on a standard for this.  
 
