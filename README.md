@@ -62,6 +62,7 @@ Detailed Design:
 
 
 Database Design:
+
 ![MartRacers_ERD](https://github.com/user-attachments/assets/d5418983-b085-4c50-9428-b682640f50e6)
 
 
