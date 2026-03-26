@@ -19,7 +19,7 @@ const {
 } = require("./lobbyStore");
 
 // DB function that grabs random items from BARCODES table
-const { getRandomBarcodes } = require("./itemsRepo");
+const { getRandomBarcodes, playerLostGame, playerWonGame } = require("./itemsRepo");
 
 const app = express();
 const server = http.createServer(app);
