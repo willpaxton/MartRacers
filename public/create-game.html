@@ -22,23 +22,23 @@
       <p class="tagline">Set up your race and share the code.</p>
     </div>
 
-    <!-- Step 1: Your Name -->
+    <!-- Class Input for you to Enter your Name!! -->
     <div class="card">
       <label class="card-label">Your Name</label>
       <input type="text" id="hostName" class="text-input" placeholder="Enter your name" maxlength="20" />
     </div>
 
-    <!-- Step 2: Item Count -->
+    <!-- Item Count -->
     <div class="card">
       <label class="card-label">Number of Items</label>
       <div class="pill-group">
         <button class="pill active" data-value="5">5 Items</button>
-        <button class="pill" data-value="10">10 Items</button>
+        <button class="pill active" data-value="10">10 Items</button>
       </div>
       <p class="card-hint">Items are randomly pulled from the product database.</p>
     </div>
 
-    <!-- Step 3: Game Code Preview -->
+    
     <div class="card code-card">
       <label class="card-label">Game Code</label>
       <div class="game-code" id="gameCode">––––</div>
@@ -46,9 +46,9 @@
     </div>
 
     <!-- Start Button -->
-    <button class="btn btn-primary" id="startGameBtn">Generate Code & Start</button>
+<button class="btn btn-primary" id="startGameBtn" onclick="window.location.href='playgame.html'">Generate Code & Start</button>
 
-    <!-- Scanner Section (hidden until game starts) -->
+    <!-- Scanner Section (This is going to hide until the game starts) -->
     <div id="scanner-section" style="display:none;">
       <div class="divider"></div>
       <div class="card">

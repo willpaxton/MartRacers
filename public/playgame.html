@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MartRacer — Race!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/playgame.css">
+  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+</head>
+<body>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown-overlay">
+    <div class="countdown-label">Race starts in</div>
+    <div id="countdown-num">3</div>
+  </div>
+
+  <!-- WIN OVERLAY -->
+  <div id="win-overlay">
+    <div class="win-card">
+      <div class="win-emoji">🏆</div>
+      <div class="win-title">YOU WIN!</div>
+      <div class="win-sub">You found all items first.</div>
+      <div class="win-time" id="win-time-display">Time: 0:00</div>
+      <div class="win-btns">
+        <button class="btn btn-primary" onclick="window.location.href='create-game.html'">Play Again</button>
+        <button class="btn btn-ghost"   onclick="window.location.href='index.html'">Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">MART<span>RACER</span></div>
+    <div id="elapsed-wrap">
+      <span class="elapsed-icon">⏱</span>
+      <div id="elapsed">0:00</div>
+    </div>
+    <div id="opp-badge">
+      <div class="opp-pip" id="opp-pip"></div>
+      <div>
+        <div id="opp-name">Opponent</div>
+        <div id="opp-prog">0 / 5 found</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PROGRESS BAR -->
+  <div id="progress-bar-wrap">
+    <div id="progress-track">
+      <div id="progress-fill"></div>
+    </div>
+    <div id="progress-label">
+      <b id="found-count">0</b> / <span id="total-count">5</span> found
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <main>
+
+    <!-- LEFT: Item List -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Your Items</h2>
+        <span class="pill" id="list-pill">0 / 5</span>
+      </div>
+      <div class="panel-body">
+        <ul id="item-list">
+          
+        </ul>
+      </div>
+    </div>
+
+ 
+    <div class="panel scanner-panel">
+      <div class="panel-head">
+        <h2>Scanner</h2>
+        <span class="pill green" id="scanner-status-pill">Ready</span>
+      </div>
+      <div class="panel-body">
+
+       
+        <div id="current-item-card">
+          <div id="current-item-icon">🛒</div>
+          <div>
+            <div id="current-item-name">Waiting to start…</div>
+            <div id="current-item-sub"></div>
+          </div>
+        </div>
+
+      
+        <div id="scanner-viewport">
+          <div class="scan-crosshair">
+            <div class="scan-line"></div>
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+          </div>
+        </div>
+        <div id="scan-status">Press "Start Scanner" to begin scanning</div>
+
+        <div class="scanner-btns">
+          <button class="btn btn-primary" id="start-scanner">Start Scanner</button>
+          <button class="btn btn-danger"  id="stop-scanner" disabled>Stop</button>
+        </div>
+
+        <!-- UPC-->
+        <div id="manual-section">
+          <input type="text" id="manual-upc" placeholder="Enter UPC barcode…" maxlength="14" />
+          <button class="btn-submit-upc" id="submit-upc">Check</button>
+        </div>
+        <button class="btn btn-ghost" id="toggle-manual">✏️ Enter UPC Manually</button>
+
+      </div>
+    </div>
+  </main>
+
+
+  <div id="toast"></div>
+
+  <script src="js/playgame.js"></script>
+</body>
+</html>

@@ -46,7 +46,7 @@
   margin-top: 10px;
 }
 
-/* ── TEXT INPUT ── */
+/* TEXT INPUT */
 .text-input {
   width: 100%;
   background: #1a1a1a;
@@ -101,7 +101,7 @@
   color: var(--text);
 }
 
-/* ── GAME CODE ── */
+/* GAME CODE  */
 .code-card {
   text-align: center;
 }
@@ -116,7 +116,7 @@
   padding: 8px 0;
 }
 
-/* ── ITEM LIST ── */
+/* ITEM LIST  */
 .item-list {
   display: flex;
   flex-direction: column;
@@ -148,7 +148,7 @@
   text-align: center;
 }
 
-/* ── SCANNER ── */
+/*  SCANNER  */
 #scanner-container {
   width: 100%;
   margin-top: 20px;
@@ -156,7 +156,7 @@
   overflow: hidden;
 }
 
-/* ── DIVIDER ── */
+/*  DIVIDER  */
 .divider {
   width: 100%;
   height: 1px;
