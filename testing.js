@@ -1,3 +1,4 @@
+const { log } = require("console");
 const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 
@@ -80,6 +81,7 @@ async function runAllTests() {
         console.log("Player 1 UPCs:", upcs);
         for (const upc of upcs)
         {
+            console.log("Testing: ", upc);
             await testInUPCBar(upc, driver1);
         }
 
