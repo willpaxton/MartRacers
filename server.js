@@ -45,22 +45,28 @@ function getLobbyAndPlayer(lobbyId, socketId, getLobbyFn) {
 }
 
 /**
- * Get a replacement item that is not already in the player's current item list.
- * We try a few times to avoid duplicates.
+ * Get a replacement item that is not already in the player's current item list
+ * and has not already been scanned by that player.
  */
-async function getUniqueReplacementItem(playerItems, itemIndexToReplace) {
+async function getUniqueReplacementItem(playerItems, itemIndexToReplace, collectedUpcs = new Set()) {
   const existingUpcs = new Set(
     playerItems
       .filter((_, idx) => idx !== itemIndexToReplace)
       .map((i) => String(i.upc).trim())
   );
 
+  const excludedUpcs = new Set([
+    ...existingUpcs,
+    ...Array.from(collectedUpcs).map((u) => String(u).trim())
+  ]);
+
   // Try a few batches to find something unique
   for (let attempt = 0; attempt < 5; attempt++) {
     const candidates = await getRandomBarcodes(10);
+
     const replacement = candidates.find((item) => {
       const upc = String(item.upc).trim();
-      return !existingUpcs.has(upc);
+      return !excludedUpcs.has(upc);
     });
 
     if (replacement) return replacement;
@@ -139,26 +145,43 @@ io.on("connection", (socket) => {
           players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
         });
 
-        lobby.status = "in_game";
-        lobby.startedAt = Date.now();
+        // -----------------------------------------
+        // Countdown support
+        // -----------------------------------------
+        const countdownSeconds = 3;
+        const countdownMs = countdownSeconds * 1000;
 
-        // IMPORTANT: Each player gets their own random list (your design decision).
+        // Game is not live yet — countdown phase first
+        lobby.status = "countdown";
+        lobby.startedAt = Date.now() + countdownMs;
+
+        // After countdown expires, officially mark game as live
+        setTimeout(() => {
+          const latestLobby = getLobby(lobbyId);
+          if (!latestLobby) return;
+
+          if (latestLobby.status === "countdown") {
+            latestLobby.status = "in_game";
+            console.log("⏱️ Countdown finished. Game is now live in lobby:", lobbyId);
+          }
+        }, countdownMs);
+
+        // Each player gets their own random list
         for (const p of lobby.players) {
-          // Pull random barcode items from SQLite
           const items = await getRandomBarcodes(lobby.numItems);
 
           // Store the full items list on the server (includes UPC)
-          // This is the authoritative truth for scan validation later.
           p.items = items;
           p.currentIndex = 0;
           p.score = 0;
           p.collectedUpcs = new Set();
 
-          // Send the client ONLY what they need to play (no UPC).
-          // If we send UPC, they can cheat easily.
+          // Send the client only the display fields + countdown metadata
           io.to(p.socketId).emit("game:start", {
             lobbyId,
             numItems: lobby.numItems,
+            countdownSeconds,
+            gameStartAt: lobby.startedAt,
             yourItems: items.map(i => ({
               title: i.title,
               category: i.category,
@@ -170,7 +193,7 @@ io.on("connection", (socket) => {
           });
         }
 
-        console.log("🏁 Game started in lobby:", lobbyId);
+        console.log("🏁 Game countdown started in lobby:", lobbyId);
       }
     } catch (err) {
       console.error("Join/start error:", err);
@@ -195,6 +218,19 @@ io.on("connection", (socket) => {
 
     const { lobby, player, error } = getLobbyAndPlayer(lobbyId, socket.id, getLobby);
     if (error) return socket.emit("lobby:error", { message: error });
+
+    // If countdown is still happening, do not allow scans yet
+    if (lobby.status === "countdown") {
+      const msLeft = Math.max(0, lobby.startedAt - Date.now());
+
+      return socket.emit("game:scanResult", {
+        lobbyId,
+        correct: false,
+        score: player.score,
+        remaining: lobby.numItems - player.score,
+        message: `Game starts in ${Math.ceil(msLeft / 1000)}...`
+      });
+    }
 
     if (lobby.status !== "in_game") {
       return socket.emit("lobby:error", { message: "Game is not currently running." });
@@ -307,8 +343,11 @@ io.on("connection", (socket) => {
         return socket.emit("lobby:error", { message: "Invalid item index." });
       }
 
-      const replacement = await getUniqueReplacementItem(player.items, itemIndex);
-
+    const replacement = await getUniqueReplacementItem(
+      player.items,
+      itemIndex,
+    player.collectedUpcs || new Set()
+    );
       if (!replacement) {
         return socket.emit("game:scanResult", {
           lobbyId,

@@ -281,6 +281,9 @@
     window.currentLobbyId = null;
     window.currentItems = [];
 
+    let gameTimerInterval = null;
+    let currentGameStartAt = null;
+
     const appRoot = document.getElementById("appRoot");
 
     const lobbyView = document.createElement("div");
@@ -336,6 +339,7 @@
       <div style="margin-bottom:12px;">
         <h1>MartRacers</h1>
         <div class="muted" id="gameInfo">(game info)</div>
+        <div id="gameTimer" style="margin-top:6px; font-weight:700; font-size:18px;">00:00</div>
       </div>
 
       <div class="card" id="scannerBox">
@@ -385,6 +389,7 @@
     const joinCodeEl = document.getElementById("joinCode");
     const backBtn = document.getElementById("backBtn");
     const gameInfo = document.getElementById("gameInfo");
+    const gameTimerEl = document.getElementById("gameTimer");
     const serverCheckEl = document.getElementById("serverCheck");
     const manualUpcInput = document.getElementById("manualUpcInput");
     const manualUpcBtn = document.getElementById("manualUpcBtn");
@@ -397,6 +402,47 @@
 
     function showStatus(msg) {
       statusEl.textContent = msg;
+    }
+        // ---------------------------------------------------------
+    // Timer helpers
+    // ---------------------------------------------------------
+    function formatElapsed(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function stopGameTimer() {
+      if (gameTimerInterval) {
+        clearInterval(gameTimerInterval);
+        gameTimerInterval = null;
+      }
+    }
+
+    function startGameTimer(gameStartAt) {
+      stopGameTimer();
+      currentGameStartAt = gameStartAt;
+
+      function tick() {
+        const now = Date.now();
+
+        // Countdown phase
+        if (now < gameStartAt) {
+          const secondsLeft = Math.max(0, Math.ceil((gameStartAt - now) / 1000));
+          gameTimerEl.textContent = `Starting in ${secondsLeft}...`;
+          gameTimerEl.style.color = "#444";
+          return;
+        }
+
+        // Actual live timer phase
+        const elapsed = now - gameStartAt;
+        gameTimerEl.textContent = formatElapsed(elapsed);
+        gameTimerEl.style.color = "#111";
+      }
+
+      tick();
+      gameTimerInterval = setInterval(tick, 250);
     }
 
     socket.onAny((event, data) => {
@@ -434,8 +480,14 @@
       history.pushState({ page: "lobby" }, "", "/");
       lobbyView.style.display = "";
       gameView.style.display = "none";
+
       window.currentItems = [];
       window.currentLobbyId = null;
+
+      stopGameTimer();
+      currentGameStartAt = null;
+      gameTimerEl.textContent = "00:00";
+      gameTimerEl.style.color = "#111";
     });
 
     function submitManualUpc() {
@@ -653,6 +705,14 @@
         " — " +
         (data.numItems || items.length) +
         " items";
+
+      // Start countdown / game timer based on server-provided official start time
+      if (typeof data.gameStartAt === "number") {
+        startGameTimer(data.gameStartAt);
+      } else {
+        gameTimerEl.textContent = "00:00";
+        gameTimerEl.style.color = "#111";
+      }
     });
 
     socket.on("game:itemReplaced", (data) => {
@@ -694,6 +754,8 @@
     socket.on("game:finish", (data) => {
       if (!serverCheckEl) return;
 
+      stopGameTimer();
+
       const reason = data.reason || "unknown";
       serverCheckEl.textContent = `🏁 Game finished! Winner: ${data.winnerPlayerId} (reason: ${reason})`;
       serverCheckEl.style.color = "#111";
@@ -708,6 +770,11 @@
         lobbyView.style.display = "";
         gameView.style.display = "none";
         window.currentLobbyId = null;
+
+        stopGameTimer();
+        currentGameStartAt = null;
+        gameTimerEl.textContent = "00:00";
+        gameTimerEl.style.color = "#111";
       }
     });
 
