@@ -20,6 +20,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+     -  name: Move into Project Folder
+        run: cd MartRacers-prototype/MartRacers-prototype
+
      -  name: Install dependencies
         run: npm install
 
