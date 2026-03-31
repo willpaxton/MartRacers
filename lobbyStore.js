@@ -53,9 +53,10 @@ function createLobby({ socketId, playerId, username, numItems }) {
     // items/currentIndex/score are stored here for the later scan validation step
     players: [
       {
-        socketId,
+        socketId,         // this is for temp usage and will most likely change over time
         playerId,
         username,
+        host: true,
         score: 0,
         items: [],        // server stores the player's secret item list here (includes UPC)
         currentIndex: 0   // points to which item they are currently trying to scan

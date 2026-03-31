@@ -30,6 +30,15 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 //app.get("/", (req, res) => res.redirect("/index")); // Redirect root to index.html
 app.use(express.static("public", { extensions: ["html"], 'index': 'index.html' })); // Serve static files from "public" folder, default to .html
+
+app.get('/lobby/:id', (req, res) => {
+  // Extract the lobby ID from the URL parameters
+  const roomID = req.params.id; 
+  // Serve the client-side file (e.g., chat.html or index.html)
+  res.sendFile(__dirname + '/public/lobby.html');
+  // The roomID is not directly used here but will be accessed on the client side
+});
+
 /**
  * Helper: find the lobby + player record for the current socket.
  * This keeps the scan logic clean and avoids repeating the same lookup code.
@@ -97,10 +106,10 @@ io.on("connection", (socket) => {
     socket.emit("lobby:created", { lobbyId: lobby.lobbyId });
 
     // Tell creator who's in the lobby (currently just them)
-    socket.emit("lobby:joined", {
-      lobbyId: lobby.lobbyId,
-      players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
-    });
+    // socket.emit("lobby:joined", {
+    //   lobbyId: lobby.lobbyId,
+    //   players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
+    // });
 
     console.log("🏠 Lobby created:", lobby.lobbyId);
   });

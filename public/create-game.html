@@ -16,7 +16,7 @@
 
     <!-- Header -->
     <div class="page-header">
-      <a href="index.html" class="back-btn">&#8592; Back</a>
+      <a href="/" class="back-btn">&#8592; Back</a>
       <div class="logo-badge">Create Game</div>
       <h1>Mart<span>Racer</span></h1>
       <p class="tagline">Set up your race and share the code.</p>
@@ -33,20 +33,20 @@
       <label class="card-label">Number of Items</label>
       <div class="pill-group">
         <button class="pill active" data-value="5">5 Items</button>
-        <button class="pill active" data-value="10">10 Items</button>
+        <button class="pill" data-value="10">10 Items</button>
       </div>
       <p class="card-hint">Items are randomly pulled from the product database.</p>
     </div>
 
     
-    <div class="card code-card">
+    <!-- <div class="card code-card">
       <label class="card-label">Game Code</label>
       <div class="game-code" id="gameCode">––––</div>
       <p class="card-hint">Share this code with the other player so they can join.</p>
-    </div>
+    </div> -->
 
     <!-- Start Button -->
-<button class="btn btn-primary" id="startGameBtn" onclick="window.location.href='playgame.html'">Generate Code & Start</button>
+<button class="btn btn-primary" id="startGameBtn" onclick="window.location.href='lobby'">Create Lobby</button>
 
     <!-- Scanner Section (This is going to hide until the game starts) -->
     <div id="scanner-section" style="display:none;">
@@ -63,7 +63,6 @@
 
   <footer class="footer">MartRacer &copy; 2025</footer>
 
-  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
   <script src="js/create-game.js"></script>
 </body>
 </html>
