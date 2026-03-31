@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MartRacer – Create Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/create-game.css">
+</head>
+<body>
+
+  <div class="content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <a href="index.html" class="back-btn">&#8592; Back</a>
+      <div class="logo-badge">Create Game</div>
+      <h1>Mart<span>Racer</span></h1>
+      <p class="tagline">Set up your race and share the code.</p>
+    </div>
+
+    <!-- Class Input for you to Enter your Name!! -->
+    <div class="card">
+      <label class="card-label">Your Name</label>
+      <input type="text" id="hostName" class="text-input" placeholder="Enter your name" maxlength="20" />
+    </div>
+
+    <!-- Item Count -->
+    <div class="card">
+      <label class="card-label">Number of Items</label>
+      <div class="pill-group">
+        <button class="pill active" data-value="5">5 Items</button>
+        <button class="pill active" data-value="10">10 Items</button>
+      </div>
+      <p class="card-hint">Items are randomly pulled from the product database.</p>
+    </div>
+
+    
+    <div class="card code-card">
+      <label class="card-label">Game Code</label>
+      <div class="game-code" id="gameCode">––––</div>
+      <p class="card-hint">Share this code with the other player so they can join.</p>
+    </div>
+
+    <!-- Start Button -->
+<button class="btn btn-primary" id="startGameBtn" onclick="window.location.href='playgame.html'">Generate Code & Start</button>
+
+    <!-- Scanner Section (This is going to hide until the game starts) -->
+    <div id="scanner-section" style="display:none;">
+      <div class="divider"></div>
+      <div class="card">
+        <label class="card-label">Scan Items</label>
+        <p class="card-hint" id="scanStatus">Waiting for opponent to join…</p>
+        <div id="item-list" class="item-list"></div>
+      </div>
+      <div id="scanner-container"></div>
+    </div>
+
+  </div>
+
+  <footer class="footer">MartRacer &copy; 2025</footer>
+
+  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+  <script src="js/create-game.js"></script>
+</body>
+</html>

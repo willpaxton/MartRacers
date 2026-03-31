@@ -1,0 +1,165 @@
+.page-header {
+  width: 100%;
+  text-align: center;
+  padding-bottom: 8px;
+}
+
+.back-btn {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  transition: color 0.15s;
+}
+
+.back-btn:hover {
+  color: var(--text);
+}
+
+/* ── CARDS ── */
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.card-label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.card-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+
+/* TEXT INPUT */
+.text-input {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.text-input:focus {
+  border-color: var(--blue);
+}
+
+.text-input::placeholder {
+  color: #444;
+}
+
+/* ── PILL TOGGLE ── */
+.pill-group {
+  display: flex;
+  gap: 10px;
+}
+
+.pill {
+  flex: 1;
+  padding: 12px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pill.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.pill:hover:not(.active) {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+/* GAME CODE  */
+.code-card {
+  text-align: center;
+}
+
+.game-code {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: 10px;
+  color: var(--yellow);
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* ITEM LIST  */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  border: 1px solid #222;
+  font-size: 14px;
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.item-row.scanned {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.item-row .check {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/*  SCANNER  */
+#scanner-container {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/*  DIVIDER  */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: #222;
+  margin: 8px 0 20px;
+}
