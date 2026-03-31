@@ -70,11 +70,6 @@ async function testInUPCBar(UPCCode, driver) {
     await manualUpcBtn.click();
 }
 
-createLobbyAndId().catch((error) => {
-    console.error("Something went wrong:", error);
-});
-
-
 async function runAllTests() {
     try {
         await createLobbyAndID()
@@ -95,3 +90,7 @@ async function runAllTests() {
         if (driver2) await driver2.quit();
     }
 }
+
+runAllTests().catch((error) => {
+    console.error("Something went wrong:", error);
+});
