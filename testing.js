@@ -72,7 +72,7 @@ async function testInUPCBar(UPCCode, driver) {
 
 async function runAllTests() {
     try {
-        await createLobbyAndID()
+        await createLobbyAndId()
         await joinLobbyWithSecond(ID)
         await new Promise(resolve => setTimeout(resolve, 3000));
         
