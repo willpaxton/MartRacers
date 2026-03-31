@@ -28,8 +28,8 @@ const server = http.createServer(app);
 // Lock down later once you know where frontend is hosted.
 const io = new Server(server, { cors: { origin: "*" } });
 
-app.get("/", (req, res) => res.send("MartRacers server running ✅"));
-app.use(express.static("public"));
+//app.get("/", (req, res) => res.redirect("/index")); // Redirect root to index.html
+app.use(express.static("public", { extensions: ["html"], 'index': 'index.html' })); // Serve static files from "public" folder, default to .html
 /**
  * Helper: find the lobby + player record for the current socket.
  * This keeps the scan logic clean and avoids repeating the same lookup code.
