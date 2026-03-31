@@ -1,0 +1,36 @@
+name: Selenium Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+     -  name: Checkout code
+        uses: actions/checkout@v4
+
+     -  name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+     -  name: Install dependencies
+        run: npm install
+
+     -  name: Install ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+
+     -  name: Start game server
+        run: node server.js &
+
+     -  name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+     -  name: Run Selenium tests
+        run: npm run test:selenium
