@@ -14,7 +14,6 @@ const {
   createLobby,
   joinLobby, 
   getLobby,
-  getLobbyIdBySocket,
   removeLobby
 } = require("./lobbyStore");
 
@@ -87,46 +86,40 @@ io.on("connection", (socket) => {
 
   /**
    * Client wants to create a lobby.
-   * Payload: { playerId, username, numItems }
+   * Payload: { numItems }
    */
   socket.on("lobby:create", (payload) => {
-    const { playerId, username, numItems } = payload || {};
-
-    // Basic validation. MVP only.
-    if (!playerId || !username) {
-      return socket.emit("lobby:error", { message: "playerId and username required" });
-    }
+    const { numItems } = payload || {};
 
     // Create lobby object in memory
-    const lobby = createLobby({ playerId, username, numItems });
-
-    // Put this socket in a socket.io "room" named after the lobbyId
-    // This allows io.to(lobbyId).emit(...) to broadcast to both players at once.
-    //socket.join(lobby.lobbyId);
+    const lobby = createLobby({ numItems });
 
     // Tell creator the lobby code
     socket.emit("lobby:created", { lobbyId: lobby.lobbyId });
-
-    // Tell creator who's in the lobby (currently just them)
-    // socket.emit("lobby:joined", {
-    //   lobbyId: lobby.lobbyId,
-    //   players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
-    // });
-
     console.log("🏠 Lobby created:", lobby.lobbyId);
   });
 
-  // Tell client if they exist in this lobby or not.
-  socket.on("lobby:rejoin", (payload) => {
+  /**
+   * Client wants to see if they have joined before (e.g. refresh case).
+   * not_connected = you have never joined this lobby before, please provide username and join
+   * connected = you are already a member of this lobby, welcome back! (handles refresh case)
+   * Payload: { lobbyId, playerId }
+   */
+    socket.on("lobby:rejoin", (payload) => {
     const {lobbyId, playerId } = payload
     const lobby = getLobby(lobbyId);
     if (!lobby) {
       return socket.emit("lobby:error", { message: "Lobby not found." });
     }
     const player = lobby.players.find(p => p.playerId === playerId);
+
+    // player is not in this lobby, they need to join first
     if (!player) {
       return socket.emit("lobby:not_connected", { message: "Player not in this lobby." });
     }
+
+    // user is joining back to a lobby they are already a member of (probably refresh case)
+    // Join socket.io room for broadcast
     socket.join(lobbyId);
     return socket.emit("lobby:connected", {
       lobbyId,
@@ -147,7 +140,7 @@ io.on("connection", (socket) => {
       }
 
       // Add player to lobby (in memory)
-      const result = joinLobby({ lobbyId, socketId: socket.id, playerId, username });
+      const result = joinLobby({ lobbyId, playerId, username });
       if (result.error) return socket.emit("lobby:error", { message: result.error });
 
       const lobby = result.lobby;
@@ -162,15 +155,15 @@ io.on("connection", (socket) => {
       });
 
       // If we have 2 players, we can start the game automatically.
-      if (lobby.players.length === 2) {
-        io.to(lobbyId).emit("lobby:ready", {
-          lobbyId,
-          players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
-        });
-      }
+      // if (lobby.players.length === 2) {
+      //   io.to(lobbyId).emit("lobby:ready", {
+      //     lobbyId,
+      //     players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
+      //   });
+      // }
     } catch (err) {
-      console.error("Join/start error:", err);
-      socket.emit("lobby:error", { message: "Failed to join/start lobby" });
+      console.error("Join error:", err);
+      socket.emit("lobby:error", { message: "Failed to join lobby" });
     }
   });
 

@@ -2,15 +2,12 @@ const socket = io();
 window.socket = socket;
 
 
+// Generate or retrieve a unique player ID
 let playerId = localStorage.getItem("playerId");
-
 if (!playerId) {
   playerId = crypto.randomUUID();
   localStorage.setItem("playerId", playerId);
 }
-
-let username = document.getElementById("hostName").value.trim() || ("Player_" + Math.floor(Math.random() * 1000));
-localStorage.setItem("username", username);
 
 
 socket.onAny((event, data) => {
@@ -18,16 +15,17 @@ socket.onAny((event, data) => {
 });
 
 
-document.getElementById("startGameBtn").addEventListener("click", () => {
+// When lobby is created
+document.getElementById("createGame").addEventListener("click", () => {
   const numItems = 5; // TODO NEED TO ADD 10 OPTION
     socket.emit("lobby:create", {
-    playerId,
-    username,
     numItems
   });
 });
 
-
+// Redirect to lobby page. if this is the first user to join they will be host.
 socket.on("lobby:created", (data) => {
+  let username = document.getElementById("name").value.trim();
+  localStorage.setItem("username", username);
   window.location.replace("/lobby/" + data.lobbyId);
 });

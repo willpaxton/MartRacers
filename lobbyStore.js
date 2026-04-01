@@ -30,7 +30,7 @@ function makeLobbyId() {
  * - username: display name for UI
  * - numItems: how many items the player needs to scan to win
  */
-function createLobby({ playerId, username, numItems }) {
+function createLobby({ numItems }) {
   // Generate a lobby code and ensure it isn't already used
   let lobbyId = makeLobbyId();
   while (lobbies.has(lobbyId)) {
@@ -51,16 +51,7 @@ function createLobby({ playerId, username, numItems }) {
 
     // players array holds up to 2 players for your MVP
     // items/currentIndex/score are stored here for the later scan validation step
-    players: [
-      {
-        playerId,
-        username,
-        host: true,
-        score: 0,
-        items: [],        // server stores the player's secret item list here (includes UPC)
-        currentIndex: 0   // points to which item they are currently trying to scan
-      }
-    ]
+    players: []
   };  
 
   // Save lobby in memory
@@ -80,23 +71,30 @@ function createLobby({ playerId, username, numItems }) {
 function joinLobby({ lobbyId, playerId, username }) {
   const lobby = lobbies.get(lobbyId);
 
+  let host = false;
+
   // Validate lobby exists
   if (!lobby) return { error: "Lobby not found." };
 
   // Validate lobby isn't full (MVP: max 2 players)
-  if (lobby.players.length >= 2) return { error: "Lobby is full." };
+  //if (lobby.players.length >= 2) return { error: "Lobby is full." };
 
   // Validate game hasn't started already
   if (lobby.status !== "waiting") return { error: "Lobby already started." };
 
-  // Add Player 2
+  if (lobby.players.length < 1) {
+    host = true;
+  }
+
   lobby.players.push({
     playerId,
     username,
+    host,
     score: 0,
     items: [],
     currentIndex: 0
   });
+
 
   // Track socket -> lobby for disconnect cleanup
   //socketToLobby.set(socketId, lobbyId);
