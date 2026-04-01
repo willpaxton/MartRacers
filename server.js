@@ -34,20 +34,22 @@ app.use(express.static("public", { extensions: ["html"], 'index': 'index.html' }
 app.get('/lobby/:id', (req, res) => {
   // Extract the lobby ID from the URL parameters
   const roomID = req.params.id; 
-  // Serve the client-side file (e.g., chat.html or index.html)
-  res.sendFile(__dirname + '/public/lobby.html');
-  // The roomID is not directly used here but will be accessed on the client side
+  if (getLobby(roomID)) {
+      res.sendFile(__dirname + '/public/lobby.html');
+  } else {
+      res.redirect('/'); // Redirect to home if lobby doesn't exist
+  }
 });
 
 /**
  * Helper: find the lobby + player record for the current socket.
  * This keeps the scan logic clean and avoids repeating the same lookup code.
  */
-function getLobbyAndPlayer(lobbyId, socketId, getLobbyFn) {
+function getLobbyAndPlayer(lobbyId, playerId, getLobbyFn) {
   const lobby = getLobbyFn(lobbyId);
   if (!lobby) return { error: "Lobby not found." };
 
-  const player = lobby.players.find(p => p.socketId === socketId);
+  const player = lobby.players.find(p => p.playerId === playerId);
   if (!player) return { error: "Player not in this lobby." };
 
   return { lobby, player };
@@ -96,11 +98,11 @@ io.on("connection", (socket) => {
     }
 
     // Create lobby object in memory
-    const lobby = createLobby({ socketId: socket.id, playerId, username, numItems });
+    const lobby = createLobby({ playerId, username, numItems });
 
     // Put this socket in a socket.io "room" named after the lobbyId
     // This allows io.to(lobbyId).emit(...) to broadcast to both players at once.
-    socket.join(lobby.lobbyId);
+    //socket.join(lobby.lobbyId);
 
     // Tell creator the lobby code
     socket.emit("lobby:created", { lobbyId: lobby.lobbyId });
@@ -112,6 +114,24 @@ io.on("connection", (socket) => {
     // });
 
     console.log("🏠 Lobby created:", lobby.lobbyId);
+  });
+
+  // Tell client if they exist in this lobby or not.
+  socket.on("lobby:rejoin", (payload) => {
+    const {lobbyId, playerId } = payload
+    const lobby = getLobby(lobbyId);
+    if (!lobby) {
+      return socket.emit("lobby:error", { message: "Lobby not found." });
+    }
+    const player = lobby.players.find(p => p.playerId === playerId);
+    if (!player) {
+      return socket.emit("lobby:not_connected", { message: "Player not in this lobby." });
+    }
+    socket.join(lobbyId);
+    return socket.emit("lobby:connected", {
+      lobbyId,
+      players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
+    });
   });
 
   /**
@@ -147,39 +167,6 @@ io.on("connection", (socket) => {
           lobbyId,
           players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
         });
-
-        lobby.status = "in_game";
-        lobby.startedAt = Date.now();
-
-        // IMPORTANT: Each player gets their own random list (your design decision).
-        for (const p of lobby.players) {
-          // Pull random barcode items from SQLite
-          const items = await getRandomBarcodes(lobby.numItems);
-
-          // Store the full items list on the server (includes UPC)
-          // This is the authoritative truth for scan validation later.
-          p.items = items;
-          p.currentIndex = 0;
-          p.score = 0;
-          p.collectedUpcs = new Set();
-
-          // Send the client ONLY what they need to play (no UPC).
-          // If we send UPC, they can cheat easily.
-          io.to(p.socketId).emit("game:start", {
-            lobbyId,
-            numItems: lobby.numItems,
-            yourItems: items.map(i => ({
-              title: i.title,
-              category: i.category,
-              description: i.description,
-              image: i.image,
-              price: i.price,
-              link: i.link
-            }))
-          });
-        }
-
-        console.log("🏁 Game started in lobby:", lobbyId);
       }
     } catch (err) {
       console.error("Join/start error:", err);
@@ -187,6 +174,38 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("game:start", async (payload) => {
+    lobby.status = "in_game";
+    lobby.startedAt = Date.now();
+
+    // IMPORTANT: Each player gets their own random list (your design decision).
+    // Pull random barcode items from SQLite
+    const items = await getRandomBarcodes(lobby.numItems);
+
+    // Store the full items list on the server (includes UPC)
+    // This is the authoritative truth for scan validation later.
+    p.items = items;
+    p.currentIndex = 0;
+    p.score = 0;
+    p.collectedUpcs = new Set();
+
+    // Send the client ONLY what they need to play (no UPC).
+    // If we send UPC, they can cheat easily.
+    io.to(lobbyId).emit("game:start", {
+      lobbyId,
+      numItems: lobby.numItems,
+      yourItems: items.map(i => ({
+        title: i.title,
+        category: i.category,
+        description: i.description,
+        image: i.image,
+        price: i.price,
+        link: i.link
+      }))
+    });
+
+    console.log("🏁 Game started in lobby:", lobbyId);
+  });
   /**
    * Client scanned a barcode and sends UPC to server.
    * Payload: { lobbyId, upc }
@@ -196,13 +215,13 @@ io.on("connection", (socket) => {
    * This makes the list behave like a shopping list rather than a forced order.
    */
   socket.on("game:scanUpc", (payload) => {
-    const { lobbyId, upc } = payload || {};
+    const { lobbyId, playerId, upc } = payload || {};
 
     if (!lobbyId || !upc) {
       return socket.emit("lobby:error", { message: "lobbyId and upc required" });
     }
 
-    const { lobby, player, error } = getLobbyAndPlayer(lobbyId, socket.id, getLobby);
+    const { lobby, player, error } = getLobbyAndPlayer(lobbyId, playerId, getLobby);
     if (error) return socket.emit("lobby:error", { message: error });
 
     if (lobby.status !== "in_game") {
@@ -299,13 +318,13 @@ io.on("connection", (socket) => {
    */
   socket.on("game:skipItem", async (payload) => {
     try {
-      const { lobbyId, itemIndex } = payload || {};
+      const { lobbyId, playerId, itemIndex } = payload || {};
 
-      if (!lobbyId || typeof itemIndex !== "number") {
-        return socket.emit("lobby:error", { message: "lobbyId and itemIndex required" });
+      if (!lobbyId || !playerId || typeof itemIndex !== "number") {
+        return socket.emit("lobby:error", { message: "lobbyId, playerId, and itemIndex required" });
       }
 
-      const { lobby, player, error } = getLobbyAndPlayer(lobbyId, socket.id, getLobby);
+      const { lobby, player, error } = getLobbyAndPlayer(lobbyId, playerId, getLobby);
       if (error) return socket.emit("lobby:error", { message: error });
 
       if (lobby.status !== "in_game") {
@@ -354,28 +373,28 @@ io.on("connection", (socket) => {
    * If game is active, auto-forfeit: other player wins.
    */
   socket.on("disconnect", () => {
-    const lobbyId = getLobbyIdBySocket(socket.id);
-    if (!lobbyId) return;
+    // const lobbyId = getLobbyIdBySocket(socket.id);
+    // if (!lobbyId) return;
 
-    const lobby = getLobby(lobbyId);
-    if (!lobby) return;
+    // const lobby = getLobby(lobbyId);
+    // if (!lobby) return;
 
-    console.log("❌ Disconnect:", socket.id, "from lobby:", lobbyId);
+    // console.log("❌ Disconnect:", socket.id, "from lobby:", lobbyId);
 
-    if (lobby.status === "in_game" && lobby.players.length === 2) {
-      const winner = lobby.players.find(p => p.socketId !== socket.id);
-      if (winner) {
-        io.to(lobbyId).emit("game:finish", {
-          lobbyId,
-          winnerPlayerId: winner.playerId,
-          reason: "opponent_disconnect"
-        });
-      }
-    }
+    // if (lobby.status === "in_game" && lobby.players.length === 2) {
+    //   const winner = lobby.players.find(p => p.socketId !== socket.id);
+    //   if (winner) {
+    //     io.to(lobbyId).emit("game:finish", {
+    //       lobbyId,
+    //       winnerPlayerId: winner.playerId,
+    //       reason: "opponent_disconnect"
+    //     });
+    //   }
+    // }
 
-    // MVP cleanup: remove lobby from memory
-    // (This is fine for now. Later, you may want to keep it for a "results screen" moment.)
-    removeLobby(lobbyId);
+    // // MVP cleanup: remove lobby from memory
+    // // (This is fine for now. Later, you may want to keep it for a "results screen" moment.)
+    // removeLobby(lobbyId);
   });
 });
 

@@ -30,7 +30,7 @@ function makeLobbyId() {
  * - username: display name for UI
  * - numItems: how many items the player needs to scan to win
  */
-function createLobby({ socketId, playerId, username, numItems }) {
+function createLobby({ playerId, username, numItems }) {
   // Generate a lobby code and ensure it isn't already used
   let lobbyId = makeLobbyId();
   while (lobbies.has(lobbyId)) {
@@ -53,7 +53,6 @@ function createLobby({ socketId, playerId, username, numItems }) {
     // items/currentIndex/score are stored here for the later scan validation step
     players: [
       {
-        socketId,         // this is for temp usage and will most likely change over time
         playerId,
         username,
         host: true,
@@ -62,14 +61,14 @@ function createLobby({ socketId, playerId, username, numItems }) {
         currentIndex: 0   // points to which item they are currently trying to scan
       }
     ]
-  };
+  };  
 
   // Save lobby in memory
   lobbies.set(lobbyId, lobby);
 
   // Save reverse lookup: socket -> lobbyId
   // Used for disconnect handling (auto-forfeit / cleanup)
-  socketToLobby.set(socketId, lobbyId);
+  //socketToLobby.set(socketId, lobbyId);
 
   return lobby;
 }
@@ -78,7 +77,7 @@ function createLobby({ socketId, playerId, username, numItems }) {
  * Adds a second player to an existing lobby.
  * Returns either { lobby } on success or { error: "..." } on failure.
  */
-function joinLobby({ lobbyId, socketId, playerId, username }) {
+function joinLobby({ lobbyId, playerId, username }) {
   const lobby = lobbies.get(lobbyId);
 
   // Validate lobby exists
@@ -92,7 +91,6 @@ function joinLobby({ lobbyId, socketId, playerId, username }) {
 
   // Add Player 2
   lobby.players.push({
-    socketId,
     playerId,
     username,
     score: 0,
@@ -101,7 +99,7 @@ function joinLobby({ lobbyId, socketId, playerId, username }) {
   });
 
   // Track socket -> lobby for disconnect cleanup
-  socketToLobby.set(socketId, lobbyId);
+  //socketToLobby.set(socketId, lobbyId);
 
   return { lobby };
 }
@@ -117,9 +115,16 @@ function getLobby(lobbyId) {
  * Returns lobbyId (invite code) for a given socket connection.
  * This is mainly used when a client disconnects.
  */
-function getLobbyIdBySocket(socketId) {
-  return socketToLobby.get(socketId);
+// function getLobbyIdBySocket(socketId) {
+//   return socketToLobby.get(socketId);
+// }
+
+function getPlayersInLobby(lobbyId) {
+  const lobby = lobbies.get(lobbyId);
+  if (!lobby) return { error: "Lobby not found." };
+  return lobby.players;
 }
+
 
 /**
  * Removes a lobby and cleans up any socket -> lobby mappings.
@@ -147,7 +152,6 @@ module.exports = {
   createLobby,
   joinLobby,
   getLobby,
-  getLobbyIdBySocket,
   removeLobby,
   getAllLobbies
 };

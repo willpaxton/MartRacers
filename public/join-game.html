@@ -1,1 +1,52 @@
-join game html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MartRacer – Join Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/create-game.css">
+</head>
+<body>
+
+  <div class="content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <a href="/" class="back-btn">&#8592; Back</a>
+      <div class="logo-badge">Join Game</div>
+      <h1>Mart<span>Racer</span></h1>
+      <p class="tagline">Join a existing game by entering the game code.</p>
+    </div>
+
+    <!-- Class Input for you to Enter your Name!! -->
+    <div class="card">
+      <label class="card-label">Your Name</label>
+      <input type="text" id="username" class="text-input" placeholder="Enter your name" maxlength="20" />
+    </div>
+
+    <!-- Class Input for you to Enter the Game Code!! -->
+    <div class="card">
+      <label class="card-label">Game Code</label>
+      <input type="text" id="gameCode" class="text-input" placeholder="_ _ _ _ _ _" maxlength="6" />
+    </div>
+
+    <!-- Start Button -->
+    <button class="btn btn-primary" id="joinGame">Join Game</button>
+
+
+  </div>
+
+  <footer class="footer">MartRacer &copy; 2025</footer>
+
+  <script>
+    document.getElementById("joinGame").addEventListener("click", () => {
+      const gamecode = document.getElementById("gameCode").value.trim();
+      window.location.replace("/lobby/" + gamecode);
+    });
+  </script>
+</body>
+</html>
