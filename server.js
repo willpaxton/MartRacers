@@ -7,8 +7,27 @@
 // - Scan validation happens on the server (server is authoritative)
 
 const express = require("express");
+const https = require("https");
 const http = require("http");
 const { Server } = require("socket.io");
+const fs = require('fs');
+
+
+// Path to the SSL certificates
+const privateKey
+    = fs.readFileSync("security/localhost.key", "utf8");
+const certificate
+    = fs.readFileSync("security/localhost.crt", "utf8");
+
+
+// Create HTTPS server options
+const credentials = {
+    key : privateKey,
+    cert : certificate
+};
+
+
+
 
 const {
   createLobby,
@@ -21,7 +40,7 @@ const {
 const { getRandomBarcodes } = require("./itemsRepo");
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(credentials, app);
 
 // CORS open for MVP so any dev frontend can connect.
 // Lock down later once you know where frontend is hosted.
@@ -415,4 +434,17 @@ app.get("/debug/lobbies", (req, res) => {
   res.json(output);
 });
 
-server.listen(3000, () => console.log("✅ Listening on http://localhost:3000"));
+server.listen(3000, () => console.log("✅ Listening on https://localhost:3000"));
+
+// redirects http to https on prod
+  // redirect http to https
+  // http.createServer((req, res) => {
+  //   res.writeHead(301, {
+  //       "Location" :
+  //           `https://${req.headers.host}${req.url}`
+  //   });
+  //   res.end();
+  // })
+  // .listen(80);
+
+  // server.listen(443, () => console.log("✅ Listening on http://localhost:3000"));
