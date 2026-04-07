@@ -1,68 +1,108 @@
+const socket = io();
 
+const lobbyId = new URLSearchParams(window.location.search).get("lobbyId");
+
+let playerId = localStorage.getItem("playerId");
+if (!playerId) {
+  playerId = crypto.randomUUID();
+  localStorage.setItem("playerId", playerId);
+}
 
 // STATE
-let items         = [];
-let totalItems    = 0;
-let foundCount    = 0;
+let items = [];
+let totalItems = 0;
+let foundCount = 0;
 let scannerActive = false;
-let elapsedSecs   = 0;
+let elapsedSecs = 0;
 let timerInterval = null;
 
-function init() {
-  // Pull item list from sessionStorage (set by create-game.js)
-  const stored = sessionStorage.getItem('gameItems');
+socket.onAny((event, data) => {
+  console.log("EVENT:", event, data);
+});
 
-  if (!stored) {
-    document.getElementById('current-item-name').textContent = 'No items loaded.';
-    document.getElementById('current-item-sub').textContent  = 'Go back and generate a game first.';
-    console.error('playgame.js: no gameItems found in sessionStorage.');
+function init() {
+  if (!lobbyId || !playerId) {
+    document.getElementById('current-item-name').textContent = 'Missing game info.';
+    document.getElementById('current-item-sub').textContent = 'Go back to the lobby.';
     return;
   }
 
-  const raw = JSON.parse(stored);
+  socket.emit("game:rejoin", {
+    lobbyId,
+    playerId
+  });
+}
 
-  items      = raw.map(item => ({ ...item, found: false }));
+socket.on("game:state", (data) => {
+  const raw = data.yourItems || [];
+
+  items = raw.map(item => ({
+    name: item.title,
+    category: item.category,
+    upc: item.upc,
+    image: item.image,
+    found: false
+  }));
+
   totalItems = items.length;
 
   document.getElementById('total-count').textContent = totalItems;
-  document.getElementById('list-pill').textContent   = `0 / ${totalItems}`;
+  document.getElementById('list-pill').textContent = `0 / ${totalItems}`;
+
+  if (data.opponent) {
+    document.getElementById("opp-name").textContent = data.opponent.username;
+    document.getElementById("opp-prog").textContent = `${data.opponent.score} / ${totalItems} found`;
+  }
 
   renderItemList();
   updateProgress();
   highlightActiveItem();
-}
+  startCountdown();
+});
 
-// 
-//  COUNTDOWN  3… 2… 1… GO! This is the timer!
-// 
+// ----------------------
+// COUNTDOWN + TIMER
+// ----------------------
+let countdownStarted = false;
+let countdownTimeout = null;
+
 function startCountdown() {
+  // Prevent duplicate countdowns from starting
+  if (countdownStarted) return;
+  countdownStarted = true;
+
   const overlay = document.getElementById('countdown-overlay');
-  const numEl   = document.getElementById('countdown-num');
+  const numEl = document.getElementById('countdown-num');
+
   let count = 3;
 
-  const tick = () => {
+  function tick() {
     if (count > 0) {
-      numEl.textContent = count;
+      numEl.textContent = String(count);
       numEl.classList.remove('go');
       count--;
-      setTimeout(tick, 1000);
-    } else {
-      numEl.textContent = 'GO!';
-      numEl.classList.add('go');
-      setTimeout(() => {
-        overlay.classList.add('fade-out');
-        setTimeout(() => overlay.classList.add('hidden'), 500);
-        startTimer();
-      }, 800);
+
+      countdownTimeout = setTimeout(tick, 1000);
+      return;
     }
-  };
+
+    // Show GO
+    numEl.textContent = 'GO!';
+    numEl.classList.add('go');
+
+    countdownTimeout = setTimeout(() => {
+      overlay.classList.add('fade-out');
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        startTimer();
+      }, 500);
+    }, 800);
+  }
 
   tick();
 }
 
-// 
-//  this is for the Timer!!!
-// 
 function startTimer() {
   timerInterval = setInterval(() => {
     elapsedSecs++;
@@ -80,23 +120,30 @@ function formatTime(secs) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
- 
+function resetCountdownState() {
+  countdownStarted = false;
+  if (countdownTimeout) {
+    clearTimeout(countdownTimeout);
+    countdownTimeout = null;
+  }
+}
+
+// ----------------------
+// UI RENDERING
+// ----------------------
 function renderItemList() {
-  const ul        = document.getElementById('item-list');
-  const activeIdx = getNextIndex();
-  ul.innerHTML    = '';
+  const ul = document.getElementById('item-list');
+  ul.innerHTML = '';
 
   items.forEach((item, i) => {
     const li = document.createElement('li');
-    li.id    = `item-row-${i}`;
-    li.className = 'item-row' +
-      (item.found                      ? ' found'  : '') +
-      (!item.found && i === activeIdx  ? ' active' : '');
+    li.id = `item-row-${i}`;
+    li.className = 'item-row' + (item.found ? ' found' : '');
 
     li.innerHTML = `
       <div class="item-num">${i + 1}</div>
       <div class="item-info">
-        <div class="item-name">${item.emoji ? item.emoji + ' ' : ''}${item.name}</div>
+        <div class="item-name">${item.name}</div>
         <div class="item-hint">${item.category || ''}</div>
       </div>
       <div class="item-status">${item.found ? '✅' : ''}</div>
@@ -105,91 +152,74 @@ function renderItemList() {
   });
 }
 
-
-function getNextIndex() {
-  return items.findIndex(it => !it.found);
-}
-
-
 function highlightActiveItem() {
-  const idx = getNextIndex();
-  if (idx === -1) return;
-  const item = items[idx];
-  document.getElementById('current-item-name').textContent = `${item.emoji || '📦'} ${item.name}`;
-  document.getElementById('current-item-sub').textContent  = item.category || 'Scan the barcode';
-  document.getElementById('current-item-icon').textContent = item.emoji || '📦';
-}
+  const item = items.find(it => !it.found);
+  if (!item) return;
 
+  document.getElementById('current-item-name').textContent = item.name;
+  document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
+  document.getElementById('current-item-icon').textContent = '📦';
+}
 
 function updateProgress() {
   foundCount = items.filter(i => i.found).length;
-  const pct  = totalItems > 0 ? (foundCount / totalItems) * 100 : 0;
+  const pct = totalItems > 0 ? (foundCount / totalItems) * 100 : 0;
 
   document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('found-count').textContent   = foundCount;
-  document.getElementById('list-pill').textContent     = `${foundCount} / ${totalItems}`;
+  document.getElementById('found-count').textContent = foundCount;
+  document.getElementById('list-pill').textContent = `${foundCount} / ${totalItems}`;
 }
 
-// 
-//  MARK ITEM FOUND
-// 
-function markFound(upc) {
-  const scannedIdx = items.findIndex(it => it.upc === upc && !it.found);
-  const activeIdx  = getNextIndex();
+// ----------------------
+// SERVER-DRIVEN ITEM MATCHING
+// ----------------------
+socket.on("game:scanResult", (data) => {
+  if (data.correct) {
+    if (data.matchedTitle) {
+      const match = items.find(it => it.name === data.matchedTitle && !it.found);
+      if (match) match.found = true;
+    }
 
-  // UPC not on the list at all
-  if (scannedIdx === -1) {
-    showToast('❌ Item not on your list!', 'error');
-    shakeActiveRow();
-    return;
+    updateProgress();
+    renderItemList();
+    highlightActiveItem();
+    showToast(`✅ Found item!`, 'success');
+  } else {
+    showToast(data.message || '❌ Wrong item', 'error');
+    shakeFirstUnfoundRow();
   }
+});
 
-  
-  if (scannedIdx !== activeIdx) {
-    showToast('⚠️ Scan items in order!', 'error');
-    shakeActiveRow();
-    return;
+socket.on("game:finish", (data) => {
+  stopTimer();
+
+  if (data.winnerPlayerId === playerId) {
+    document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
+    document.getElementById('win-overlay').classList.add('visible');
+  } else {
+    showToast('❌ Opponent won!', 'error');
   }
+});
 
-  // Correct scan!
-  items[scannedIdx].found = true;
-  updateProgress();
-  renderItemList();
-  highlightActiveItem();
-  showToast(`✅ Found: ${items[scannedIdx].name}`, 'success');
-
-  if (foundCount === totalItems) {
-    setTimeout(triggerWin, 600);
-  }
-}
-
-function shakeActiveRow() {
-  const idx = getNextIndex();
+function shakeFirstUnfoundRow() {
+  const idx = items.findIndex(it => !it.found);
   if (idx === -1) return;
+
   const row = document.getElementById(`item-row-${idx}`);
   if (!row) return;
+
   row.classList.add('shake');
   row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
 }
 
-// 
-//  WIN SCREEN
-// 
-function triggerWin() {
-  stopTimer();
-  stopScanner();
-  document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
-  document.getElementById('win-overlay').classList.add('visible');
-}
-
-// 
-//   BARCODE SCANNER
-// 
+// ----------------------
+// SCANNER / MANUAL UPC
+// ----------------------
 function startScanner() {
   const viewport = document.getElementById('scanner-viewport');
   viewport.classList.add('active');
   document.getElementById('start-scanner').disabled = true;
-  document.getElementById('stop-scanner').disabled  = false;
+  document.getElementById('stop-scanner').disabled = false;
   document.getElementById('scanner-status-pill').textContent = 'Scanning…';
   scannerActive = true;
 
@@ -225,13 +255,18 @@ function startScanner() {
 
   Quagga.onDetected(result => {
     const code = result.codeResult.code;
-    const now  = Date.now();
+    const now = Date.now();
     if (code === lastCode && now - lastTime < 2000) return;
     lastCode = code;
     lastTime = now;
 
     setScanStatus(`Scanned: ${code}`, 'success');
-    markFound(code);
+
+    socket.emit("game:scanUpc", {
+      lobbyId,
+      playerId,
+      upc: code
+    });
   });
 }
 
@@ -246,19 +281,18 @@ function stopScanner() {
 function resetScannerUI() {
   document.getElementById('scanner-viewport').classList.remove('active');
   document.getElementById('start-scanner').disabled = false;
-  document.getElementById('stop-scanner').disabled  = true;
+  document.getElementById('stop-scanner').disabled = true;
   document.getElementById('scanner-status-pill').textContent = 'Ready';
 }
 
 function setScanStatus(msg, type) {
-  const el       = document.getElementById('scan-status');
+  const el = document.getElementById('scan-status');
   el.textContent = msg;
-  el.className   = type;
+  el.className = type;
 }
 
-
 document.getElementById('toggle-manual').addEventListener('click', () => {
-  const sec     = document.getElementById('manual-section');
+  const sec = document.getElementById('manual-section');
   const visible = sec.classList.toggle('visible');
   document.getElementById('toggle-manual').textContent = visible
     ? '✖ Hide Manual Entry'
@@ -268,7 +302,13 @@ document.getElementById('toggle-manual').addEventListener('click', () => {
 document.getElementById('submit-upc').addEventListener('click', () => {
   const val = document.getElementById('manual-upc').value.trim();
   if (!val) return;
-  markFound(val);
+
+  socket.emit("game:scanUpc", {
+    lobbyId,
+    playerId,
+    upc: val
+  });
+
   document.getElementById('manual-upc').value = '';
 });
 
@@ -276,21 +316,19 @@ document.getElementById('manual-upc').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('submit-upc').click();
 });
 
-
 document.getElementById('start-scanner').addEventListener('click', startScanner);
 document.getElementById('stop-scanner').addEventListener('click', stopScanner);
-
 
 let toastTimeout;
 
 function showToast(msg, type = '') {
-  const el       = document.getElementById('toast');
+  const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className   = `show ${type}`;
+  el.className = `show ${type}`;
   clearTimeout(toastTimeout);
-  toastTimeout   = setTimeout(() => { el.className = ''; }, 2400);
+  toastTimeout = setTimeout(() => {
+    el.className = '';
+  }, 2400);
 }
 
-
 init();
-startCountdown();
