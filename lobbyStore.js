@@ -153,4 +153,3 @@ module.exports = {
   removeLobby,
   getAllLobbies
 };
-
