@@ -11,7 +11,13 @@ function getChromeOptions() {
         options.addArguments('--headless');
         options.addArguments('--no-sandbox');
         options.addArguments('--disable-dev-shm-usage');
+
+
     }
+    options.addArguments('--ignore-certificate-errors');
+    options.addArguments('--ignore-ssl-errors');
+    options.setAcceptInsecureCerts(true); // ← this is the key fix
+
     return options;
 }
 
@@ -20,7 +26,7 @@ async function createLobbyAndId() {
     driver1 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
 
     console.log("Going to GameSite");
-    await driver1.get('https://localhost:3000/test.html');
+    await driver1.get('https://localhost:3000/');
 
     console.log("Finding CreateButton");
     const createButton = await driver1.wait(until.elementLocated(By.id("createBtn")), 10000);
@@ -41,7 +47,7 @@ async function createLobbyAndId() {
 async function joinLobbyWithSecond(ID) {
     console.log("Opening Chrome 2");
     driver2 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
-    await driver2.get('https://localhost:3000/test.html');
+    await driver2.get('https://localhost:3000/');
     
     console.log("Sending Lobby ID to second client");
     await driver2.findElement(By.id("joinCode")).sendKeys(ID, Key.RETURN);
