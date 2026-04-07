@@ -9,6 +9,7 @@ if (!playerId) {
   localStorage.setItem("playerId", playerId);
 }
 
+document.getElementById("name").value = localStorage.getItem("username") || null;
 
 socket.onAny((event, data) => {
   console.log("EVENT:", event, data);
