@@ -13,8 +13,10 @@ const { Server } = require("socket.io");
 const {
   createLobby,
   joinLobby, 
+  leaveLobby,
   getLobby,
-  removeLobby
+  removeLobby,
+  getLobbyIdByPlayer
 } = require("./lobbyStore");
 
 // DB function that grabs random items from BARCODES table
@@ -118,9 +120,13 @@ io.on("connection", (socket) => {
       return socket.emit("lobby:not_connected", { message: "Player not in this lobby." });
     }
 
+    clearTimeout(player.timeout); // Clear any existing disconnect timeout since they're back
+
     // user is joining back to a lobby they are already a member of (probably refresh case)
     // Join socket.io room for broadcast
     socket.join(lobbyId);
+    socket.playerId = playerId; // Attach playerId to socket for easy lookup on disconnect
+
     return socket.emit("lobby:connected", {
       lobbyId,
       players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
@@ -147,6 +153,7 @@ io.on("connection", (socket) => {
 
       // Join socket.io room for broadcast
       socket.join(lobbyId);
+      socket.playerId = playerId; // Attach playerId to socket for easy lookup on disconnect
 
       // Broadcast lobby players to both clients
       io.to(lobbyId).emit("lobby:joined", {
@@ -366,24 +373,27 @@ io.on("connection", (socket) => {
    * If game is active, auto-forfeit: other player wins.
    */
   socket.on("disconnect", () => {
-    // const lobbyId = getLobbyIdBySocket(socket.id);
-    // if (!lobbyId) return;
+    const lobbyId = getLobbyIdByPlayer(socket.playerId);
+    if (!lobbyId) return;
 
-    // const lobby = getLobby(lobbyId);
-    // if (!lobby) return;
+    const lobby = getLobby(lobbyId);
+    if (!lobby) return;
 
-    // console.log("❌ Disconnect:", socket.id, "from lobby:", lobbyId);
+    const playerId = socket.playerId;
 
-    // if (lobby.status === "in_game" && lobby.players.length === 2) {
-    //   const winner = lobby.players.find(p => p.socketId !== socket.id);
-    //   if (winner) {
-    //     io.to(lobbyId).emit("game:finish", {
-    //       lobbyId,
-    //       winnerPlayerId: winner.playerId,
-    //       reason: "opponent_disconnect"
-    //     });
-    //   }
-    // }
+    console.log("❌ Disconnect:", playerId, "from lobby:", lobbyId);
+
+    const player = lobby.players.find(p => p.playerId === playerId);
+
+    player.timeout = setTimeout(() => {
+      leaveLobby(playerId);
+      lobby.players = lobby.players.filter(p => p.playerId !== playerId);
+      io.to(lobbyId).emit("lobby:joined", {
+        lobbyId,
+        players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
+      });
+    }, 5000); // 10 second timeout for players to reconnect
+
 
     // // MVP cleanup: remove lobby from memory
     // // (This is fine for now. Later, you may want to keep it for a "results screen" moment.)

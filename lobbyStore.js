@@ -4,7 +4,7 @@
 // SQLite can store long-term stats/results, but live match state should be in memory.
 
 const lobbies = new Map();       // lobbyId (string) -> lobby object
-const socketToLobby = new Map(); // socketId (string) -> lobbyId (string)
+const playerToLobby = new Map(); // playerId (string) -> lobbyId (string)
 
 /**
  * Generates an easy-to-type lobby code like Among Us.
@@ -86,6 +86,8 @@ function joinLobby({ lobbyId, playerId, username }) {
     host = true;
   }
 
+  playerToLobby.set(playerId, lobbyId); // Track which lobby this player is in for easy disconnect handling
+
   lobby.players.push({
     playerId,
     username,
@@ -98,6 +100,28 @@ function joinLobby({ lobbyId, playerId, username }) {
 
   // Track socket -> lobby for disconnect cleanup
   //socketToLobby.set(socketId, lobbyId);
+
+  return { lobby };
+}
+
+function leaveLobby( playerId ) {
+  // Find the lobby that this player is in
+  const lobbyId = playerToLobby.get(playerId);
+  if (!lobbyId) return { error: "Player not in any lobby." };
+
+  const lobby = lobbies.get(lobbyId);
+  if (!lobby) return { error: "Lobby not found." };
+
+  // Remove player from lobby
+  lobby.players = lobby.players.filter(p => p.playerId !== playerId);
+
+  // Remove player -> lobby mapping
+  playerToLobby.delete(playerId);
+
+  // If the lobby is empty, remove it
+  if (lobby.players.length === 0) {
+    removeLobby(lobbyId);
+  }
 
   return { lobby };
 }
@@ -117,10 +141,12 @@ function getLobby(lobbyId) {
 //   return socketToLobby.get(socketId);
 // }
 
-function getPlayersInLobby(lobbyId) {
-  const lobby = lobbies.get(lobbyId);
-  if (!lobby) return { error: "Lobby not found." };
-  return lobby.players;
+/**
+ * Returns lobbyId (invite code) for a given playerId.
+ * This is mainly used when a client disconnects.
+ */
+function getLobbyIdByPlayer(playerId) {
+  return playerToLobby.get(playerId);
 }
 
 
@@ -134,7 +160,7 @@ function removeLobby(lobbyId) {
   // If lobby exists, remove all socket mappings for its players
   if (lobby) {
     for (const p of lobby.players) {
-      socketToLobby.delete(p.socketId);
+      playerToLobby.delete(p.playerId);
     }
   }
 
@@ -149,7 +175,9 @@ function getAllLobbies() {
 module.exports = {
   createLobby,
   joinLobby,
+  leaveLobby,
   getLobby,
   removeLobby,
-  getAllLobbies
+  getAllLobbies,
+  getLobbyIdByPlayer
 };

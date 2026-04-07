@@ -43,6 +43,8 @@
   <footer class="footer">MartRacer &copy; 2025</footer>
 
   <script>
+    document.getElementById("name").value = localStorage.getItem("username") || null;
+
     document.getElementById("joinGame").addEventListener("click", () => {
       let username = document.getElementById("name").value.trim();
       localStorage.setItem("username", username);
