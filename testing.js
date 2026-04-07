@@ -20,7 +20,7 @@ async function createLobbyAndId() {
     driver1 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
 
     console.log("Going to GameSite");
-    await driver1.get('http://localhost:3000/test.html');
+    await driver1.get('https://localhost:3000/test.html');
 
     console.log("Finding CreateButton");
     const createButton = await driver1.wait(until.elementLocated(By.id("createBtn")), 10000);
@@ -41,7 +41,7 @@ async function createLobbyAndId() {
 async function joinLobbyWithSecond(ID) {
     console.log("Opening Chrome 2");
     driver2 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
-    await driver2.get('http://localhost:3000/test.html');
+    await driver2.get('https://localhost:3000/test.html');
     
     console.log("Sending Lobby ID to second client");
     await driver2.findElement(By.id("joinCode")).sendKeys(ID, Key.RETURN);
@@ -50,7 +50,7 @@ async function joinLobbyWithSecond(ID) {
 
 async function getPlayer1Upcs(lobbyCode) {
     return new Promise((resolve, reject) => {
-        require("http").get("http://localhost:3000/debug/lobbies", (res) => {
+        require("https").get("https://localhost:3000/debug/lobbies", (res) => {
             let data = "";
             res.on("data", chunk => data += chunk);
             res.on("end", () => {
