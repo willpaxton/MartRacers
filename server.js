@@ -434,17 +434,14 @@ app.get("/debug/lobbies", (req, res) => {
   res.json(output);
 });
 
-server.listen(3000, () => console.log("✅ Listening on https://localhost:3000"));
-
-// redirects http to https on prod
-  // redirect http to https
+  // // redirect http to https
   // http.createServer((req, res) => {
   //   res.writeHead(301, {
   //       "Location" :
-  //           `https://${req.headers.host}${req.url}`
+  //           `https://${req.headers.host}${req.url}:3000`
   //   });
   //   res.end();
   // })
-  // .listen(80);
+  // .listen(3001);
 
-  // server.listen(443, () => console.log("✅ Listening on http://localhost:3000"));
+  server.listen(3000, () => console.log("✅ Listening on http://localhost:3000"));
