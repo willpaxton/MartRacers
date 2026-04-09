@@ -310,16 +310,27 @@ main {
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: 10px;
-  transition: border-color .25s, opacity .3s, transform .2s;
+  transition: border-color .25s, opacity .3s, transform .2s, box-shadow .2s;
   position: relative;
   overflow: hidden;
   opacity: .75;
+  cursor: pointer;
 }
 
 /* Active item (next to scan) */
 .item-row.active {
   border-color: var(--yellow);
   box-shadow: 0 0 0 3px rgba(255, 194, 32, .12);
+  opacity: 1;
+}
+
+.item-row:hover {
+  border-color: rgba(255, 194, 32, 0.45);
+}
+
+.item-row.selected {
+  border-color: #4da3ff;
+  box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.12);
   opacity: 1;
 }
 
@@ -416,10 +427,39 @@ main {
   gap: 14px;
 }
 
-#current-item-icon {
-  font-size: 2.4rem;
-  line-height: 1;
+#current-item-media-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
+  position: relative;
+}
+
+#current-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+#current-item-image.show {
+  display: block;
+}
+
+#current-item-image-placeholder {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+#current-item-image-placeholder.hidden {
+  display: none;
 }
 
 #current-item-name {
@@ -716,3 +756,92 @@ main {
 
 #toast.success { border-color: var(--green); color: var(--green); }
 #toast.error   { border-color: var(--red);   color: var(--red);   }
+
+/* =========================================
+   ITEM THUMBNAILS
+========================================= */
+.item-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.item-thumb {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.08);
+  flex: 0 0 auto;
+  cursor: pointer;
+  background: #111;
+}
+
+.item-thumb-placeholder {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.1;
+  padding: 6px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* =========================================
+   IMAGE ZOOM OVERLAY
+========================================= */
+#img-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+#img-overlay.open {
+  display: flex;
+}
+
+#img-overlay-card {
+  width: min(92vw, 520px);
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+}
+
+#img-overlay-photo {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #000;
+  display: block;
+}
+
+#img-overlay-title {
+  margin-top: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+
+#img-overlay-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}

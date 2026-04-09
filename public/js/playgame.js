@@ -15,6 +15,73 @@ let foundCount = 0;
 let scannerActive = false;
 let elapsedSecs = 0;
 let timerInterval = null;
+let selectedItemIndex = null;
+const imgOverlay = document.getElementById('img-overlay');
+const imgOverlayPhoto = document.getElementById('img-overlay-photo');
+const imgOverlayTitle = document.getElementById('img-overlay-title');
+const imgOverlaySub = document.getElementById('img-overlay-sub');
+const currentItemNameEl = document.getElementById('current-item-name');
+const currentItemSubEl = document.getElementById('current-item-sub');
+const currentItemImageEl = document.getElementById('current-item-image');
+const currentItemImagePlaceholderEl = document.getElementById('current-item-image-placeholder');
+
+function showItemInScannerCard(item) {
+  if (!item) {
+    currentItemNameEl.textContent = 'Waiting to start…';
+    currentItemSubEl.textContent = '';
+    currentItemImageEl.src = '';
+    currentItemImageEl.classList.remove('show');
+    currentItemImagePlaceholderEl.classList.remove('hidden');
+    return;
+  }
+
+  currentItemNameEl.textContent = item.name || 'Unknown item';
+  currentItemSubEl.textContent = item.category || 'Scan an item';
+
+  if (item.image && String(item.image).trim()) {
+    currentItemImageEl.src = String(item.image).trim();
+    currentItemImageEl.classList.add('show');
+    currentItemImagePlaceholderEl.classList.add('hidden');
+
+    currentItemImageEl.onerror = () => {
+      currentItemImageEl.src = '';
+      currentItemImageEl.classList.remove('show');
+      currentItemImagePlaceholderEl.classList.remove('hidden');
+    };
+  } else {
+    currentItemImageEl.src = '';
+    currentItemImageEl.classList.remove('show');
+    currentItemImagePlaceholderEl.classList.remove('hidden');
+  }
+}
+
+function openImageOverlay(item) {
+  if (!item || !item.image) return;
+
+  imgOverlayPhoto.src = item.image;
+  imgOverlayPhoto.alt = item.name || 'Item image';
+  imgOverlayTitle.textContent = item.name || 'Item';
+  imgOverlaySub.textContent = item.category || '';
+  imgOverlay.classList.add('open');
+}
+
+function closeImageOverlay() {
+  imgOverlay.classList.remove('open');
+  imgOverlayPhoto.src = '';
+}
+
+imgOverlay.addEventListener('click', (e) => {
+  if (e.target === imgOverlay) {
+    closeImageOverlay();
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && imgOverlay.classList.contains('open')) {
+    closeImageOverlay();
+  }
+});
+
 
 socket.onAny((event, data) => {
   console.log("EVENT:", event, data);
@@ -43,6 +110,9 @@ socket.on("game:state", (data) => {
     image: item.image,
     found: false
   }));
+
+  selectedItemIndex = items.findIndex(it => !it.found);
+  if (selectedItemIndex === -1) selectedItemIndex = null;
 
   totalItems = items.length;
 
@@ -138,27 +208,105 @@ function renderItemList() {
   items.forEach((item, i) => {
     const li = document.createElement('li');
     li.id = `item-row-${i}`;
-    li.className = 'item-row' + (item.found ? ' found' : '');
+        li.className =
+      'item-row' +
+      (item.found ? ' found' : '') +
+      (i === selectedItemIndex ? ' selected' : '');
 
-    li.innerHTML = `
-      <div class="item-num">${i + 1}</div>
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-hint">${item.category || ''}</div>
-      </div>
-      <div class="item-status">${item.found ? '✅' : ''}</div>
+    // Main left-side grouping
+    const main = document.createElement('div');
+    main.className = 'item-main';
+
+    // Item number
+    const num = document.createElement('div');
+    num.className = 'item-num';
+    num.textContent = String(i + 1);
+
+    // Thumbnail or placeholder
+    let thumbEl;
+    const imgUrl = item.image && String(item.image).trim()
+      ? String(item.image).trim()
+      : '';
+
+    if (imgUrl) {
+      const img = document.createElement('img');
+      img.className = 'item-thumb';
+      img.src = imgUrl;
+      img.alt = item.name || 'Item image';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+
+      img.onerror = () => {
+        const ph = document.createElement('div');
+        ph.className = 'item-thumb-placeholder';
+        ph.textContent = 'No image';
+        img.replaceWith(ph);
+      };
+
+      img.addEventListener('click', () => openImageOverlay(item));
+      thumbEl = img;
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'item-thumb-placeholder';
+      ph.textContent = 'No image';
+      thumbEl = ph;
+    }
+
+    // Item text
+    const info = document.createElement('div');
+    info.className = 'item-info';
+    info.innerHTML = `
+      <div class="item-name">${item.name}</div>
+      <div class="item-hint">${item.category || ''}</div>
     `;
+
+    // Right-side found checkmark
+    const status = document.createElement('div');
+    status.className = 'item-status';
+    status.textContent = item.found ? '✅' : '';
+
+    main.appendChild(num);
+    main.appendChild(thumbEl);
+    main.appendChild(info);
+
+    li.appendChild(main);
+    li.appendChild(status);
+
+        li.addEventListener('click', (e) => {
+      // If they clicked directly on the thumbnail, let image zoom handle it
+      if (e.target.classList.contains('item-thumb')) return;
+
+      selectedItemIndex = i;
+      renderItemList();
+      showItemInScannerCard(items[i]);
+    });
+
     ul.appendChild(li);
   });
 }
 
 function highlightActiveItem() {
-  const item = items.find(it => !it.found);
-  if (!item) return;
+  // If user manually selected an item and it still exists, keep showing that
+  if (
+    selectedItemIndex !== null &&
+    selectedItemIndex >= 0 &&
+    selectedItemIndex < items.length
+  ) {
+    showItemInScannerCard(items[selectedItemIndex]);
+    return;
+  }
 
-  document.getElementById('current-item-name').textContent = item.name;
-  document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
-  document.getElementById('current-item-icon').textContent = '📦';
+  // Otherwise default to first unfound item
+  const firstUnfoundIndex = items.findIndex(it => !it.found);
+
+  if (firstUnfoundIndex === -1) {
+    showItemInScannerCard(null);
+    return;
+  }
+
+  selectedItemIndex = firstUnfoundIndex;
+  showItemInScannerCard(items[firstUnfoundIndex]);
 }
 
 function updateProgress() {
@@ -176,8 +324,16 @@ function updateProgress() {
 socket.on("game:scanResult", (data) => {
   if (data.correct) {
     if (data.matchedTitle) {
-      const match = items.find(it => it.name === data.matchedTitle && !it.found);
-      if (match) match.found = true;
+      const matchedIndex = items.findIndex(it => it.name === data.matchedTitle && !it.found);
+      if (matchedIndex !== -1) {
+        items[matchedIndex].found = true;
+
+        // If the selected item was just found, move selection to next unfound item
+        if (selectedItemIndex === matchedIndex) {
+          const nextUnfound = items.findIndex(it => !it.found);
+          selectedItemIndex = nextUnfound !== -1 ? nextUnfound : null;
+        }
+      }
     }
 
     updateProgress();
