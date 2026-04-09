@@ -6,6 +6,10 @@ let driver1, driver2, ID;
 
 function getChromeOptions() {
     const options = new chrome.Options();
+    
+    options.addArguments('--ignore-certificate-errors');
+    options.addArguments('--ignore-ssl-errors');
+
     if (process.env.CI) {
         // Only headless in GitHub Actions
         options.addArguments('--headless');
@@ -20,7 +24,7 @@ async function createLobbyAndId() {
     driver1 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
 
     console.log("Going to GameSite");
-    await driver1.get('http://localhost:3000');
+    await driver1.get('https://localhost:3000');
 
     console.log("Finding CreateButton");
     const createGameButton = await driver1.wait(until.elementLocated(By.id("createGameBtn")), 10000);
@@ -46,7 +50,7 @@ async function createLobbyAndId() {
 async function joinLobbyWithSecond(ID) {
     console.log("Opening Chrome 2");
     driver2 = await new Builder().forBrowser('chrome').setChromeOptions(getChromeOptions()).build();
-    await driver2.get('http://localhost:3000');
+    await driver2.get('https://localhost:3000');
 
     console.log("Finding JoinButton");
     const joinGameButton = await driver2.wait(until.elementLocated(By.id("joinGameBtn")), 10000);

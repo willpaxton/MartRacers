@@ -30,7 +30,7 @@ jobs:
         run: node server.js &
 
      -  name: Wait for server
-        run: npx wait-on http://localhost:3000 --timeout 30000
+        run: npx wait-on https://localhost:3000 --timeout 30000
 
      -  name: Run Selenium tests
         run: npm run test:selenium
