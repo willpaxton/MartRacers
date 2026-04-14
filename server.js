@@ -471,6 +471,10 @@ io.on("connection", (socket) => {
     const lobby = getLobby(lobbyId);
     if (!lobby) return;
 
+    if (lobby.status === "in_game") {
+      return;
+    }
+
     const playerId = socket.playerId;
 
     console.log("❌ Disconnect:", playerId, "from lobby:", lobbyId);
