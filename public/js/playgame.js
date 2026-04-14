@@ -17,17 +17,40 @@ let foundCount = 0;
 let scannerActive = false;
 let elapsedSecs = 0;
 let timerInterval = null;
-let selectedItemIndex = null;
 const imgOverlay = document.getElementById('img-overlay');
 const imgOverlayPhoto = document.getElementById('img-overlay-photo');
 const imgOverlayTitle = document.getElementById('img-overlay-title');
 const imgOverlaySub = document.getElementById('img-overlay-sub');
-const currentItemNameEl = document.getElementById('current-item-name');
-const currentItemSubEl = document.getElementById('current-item-sub');
-const currentItemImageEl = document.getElementById('current-item-image');
-const currentItemImagePlaceholderEl = document.getElementById('current-item-image-placeholder');
 
-// General debugging of events
+
+function openImageOverlay(item) {
+  if (!item || !item.image) return;
+
+  imgOverlayPhoto.src = item.image;
+  imgOverlayPhoto.alt = item.name || 'Item image';
+  imgOverlayTitle.textContent = item.name || 'Item';
+  imgOverlaySub.textContent = item.category || '';
+  imgOverlay.classList.add('open');
+}
+
+function closeImageOverlay() {
+  imgOverlay.classList.remove('open');
+  imgOverlayPhoto.src = '';
+}
+
+imgOverlay.addEventListener('click', (e) => {
+  if (e.target === imgOverlay) {
+    closeImageOverlay();
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && imgOverlay.classList.contains('open')) {
+    closeImageOverlay();
+  }
+});
+
+
 socket.onAny((event, data) => {
   console.log("EVENT:", event, data);
 });
@@ -54,6 +77,8 @@ socket.on("game:state", (data) => {
     image: item.image,
     found: false
   }));
+
+
 
   totalItems = items.length;
 
@@ -155,13 +180,51 @@ function renderItemList() {
     li.id = `item-row-${i}`;
     li.className = 'item-row' + (item.found ? ' found' : '');
 
-    li.innerHTML = `
-      <div class="item-num">${i + 1}</div>
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-hint">${item.category || ''}</div>
-      </div>
-      <div class="item-status">${item.found ? '✅' : ''}</div>
+    // Main left-side grouping
+    const main = document.createElement('div');
+    main.className = 'item-main';
+
+    // Item number
+    const num = document.createElement('div');
+    num.className = 'item-num';
+    num.textContent = String(i + 1);
+
+    // Thumbnail or placeholder
+    let thumbEl;
+    const imgUrl = item.image && String(item.image).trim()
+      ? String(item.image).trim()
+      : '';
+
+    if (imgUrl) {
+      const img = document.createElement('img');
+      img.className = 'item-thumb';
+      img.src = imgUrl;
+      img.alt = item.name || 'Item image';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+
+      img.onerror = () => {
+        const ph = document.createElement('div');
+        ph.className = 'item-thumb-placeholder';
+        ph.textContent = 'No image';
+        img.replaceWith(ph);
+      };
+
+      thumbEl = img;
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'item-thumb-placeholder';
+      ph.textContent = 'No image';
+      thumbEl = ph;
+    }
+
+    // Item text
+    const info = document.createElement('div');
+    info.className = 'item-info';
+    info.innerHTML = `
+      <div class="item-name">${item.name}</div>
+      <div class="item-hint">${item.category || ''}</div>
     `;
 
     // Right-side found checkmark
@@ -169,8 +232,26 @@ function renderItemList() {
     status.className = 'item-status';
     status.textContent = item.found ? '✅' : '';
 
+    main.appendChild(num);
+    main.appendChild(thumbEl);
+    main.appendChild(info);
+
+    li.appendChild(main);
+    li.appendChild(status);
+
+    // Whole row opens the enlarged image
+    li.addEventListener('click', () => {
+      openImageOverlay(item);
+    });
+
     ul.appendChild(li);
   });
+}
+
+function highlightActiveItem() {
+  // No scanner card to update anymore.
+  // Keeping function name so the rest of the code still works.
+  return;
 }
 
 function updateProgress() {
@@ -206,12 +287,6 @@ socket.on("game:scanResult", (data) => {
       const matchedIndex = items.findIndex(it => it.name === data.matchedTitle && !it.found);
       if (matchedIndex !== -1) {
         items[matchedIndex].found = true;
-
-        // If the selected item was just found, move selection to next unfound item
-        if (selectedItemIndex === matchedIndex) {
-          const nextUnfound = items.findIndex(it => !it.found);
-          selectedItemIndex = nextUnfound !== -1 ? nextUnfound : null;
-        }
       }
     }
 
