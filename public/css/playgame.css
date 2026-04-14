@@ -328,11 +328,6 @@ main {
   border-color: rgba(255, 194, 32, 0.45);
 }
 
-.item-row.selected {
-  border-color: #4da3ff;
-  box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.12);
-  opacity: 1;
-}
 
 /* Found item */
 .item-row.found {
@@ -453,12 +448,6 @@ main {
 }
 
 #current-item-image-placeholder {
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--muted);
-}
-
-#current-item-image-placeholder.hidden {
   display: none;
 }
 
