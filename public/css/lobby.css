@@ -1,0 +1,230 @@
+/* ============================================================
+   lobby.css — MartRacer Lobby Page Styles
+   Uses project CSS variables from styles.css
+   ============================================================ */
+
+/* ── GAME CODE CARD ── */
+#lobbyId {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 4px;
+  padding: 20px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+#lobbyId .code-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+#lobbyId .code-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+  color: var(--yellow);
+  text-shadow: 0 0 40px rgba(255, 194, 32, .25);
+}
+
+#lobbyId .code-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: 0.4px;
+}
+
+/* ── PLAYERS CARD ── */
+#players {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.players-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #222;
+}
+
+.players-head h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.player-count-badge {
+  background: var(--yellow);
+  color: var(--dark);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  padding: 3px 10px;
+}
+
+.players-list {
+  list-style: none;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── PLAYER ROW ── */
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--dark);
+  border: 1px solid #222;
+  border-radius: 4px;
+  animation: slideIn .25s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.player-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.player-row.host .player-avatar {
+  border-color: var(--yellow);
+  background: #1a1500;
+}
+
+.player-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.player-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-tag {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.player-row.host .player-tag {
+  color: var(--yellow);
+}
+
+.player-status {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #2ecc7a;
+  box-shadow: 0 0 8px #2ecc7a;
+  flex-shrink: 0;
+}
+
+/* ── EMPTY STATE ── */
+.players-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+
+.players-empty span {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* ── WAITING DOTS ── */
+.waiting-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 0 8px;
+}
+
+.waiting-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.waiting-dots span:nth-child(2) { animation-delay: .2s; }
+.waiting-dots span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: .3; transform: scale(.8); }
+  40%           { opacity: 1;  transform: scale(1.2); }
+}
+
+/* ── START BUTTON ── */
+/* Hidden by default — lobby.js shows it when enough players have joined */
+#start-btn {
+  display: none;
+  width: 100%;
+  padding: 15px 24px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 113, 206, 0.3);
+  transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+  margin-bottom: 12px;
+}
+
+#start-btn:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 6px 28px rgba(0, 113, 206, 0.5);
+}
+
+#start-btn:active {
+  transform: scale(0.97);
+}
