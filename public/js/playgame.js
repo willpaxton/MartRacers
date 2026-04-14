@@ -15,45 +15,11 @@ let foundCount = 0;
 let scannerActive = false;
 let elapsedSecs = 0;
 let timerInterval = null;
-let selectedItemIndex = null;
 const imgOverlay = document.getElementById('img-overlay');
 const imgOverlayPhoto = document.getElementById('img-overlay-photo');
 const imgOverlayTitle = document.getElementById('img-overlay-title');
 const imgOverlaySub = document.getElementById('img-overlay-sub');
-const currentItemNameEl = document.getElementById('current-item-name');
-const currentItemSubEl = document.getElementById('current-item-sub');
-const currentItemImageEl = document.getElementById('current-item-image');
-const currentItemImagePlaceholderEl = document.getElementById('current-item-image-placeholder');
 
-function showItemInScannerCard(item) {
-  if (!item) {
-    currentItemNameEl.textContent = 'Waiting to start…';
-    currentItemSubEl.textContent = '';
-    currentItemImageEl.src = '';
-    currentItemImageEl.classList.remove('show');
-    currentItemImagePlaceholderEl.classList.remove('hidden');
-    return;
-  }
-
-  currentItemNameEl.textContent = item.name || 'Unknown item';
-  currentItemSubEl.textContent = item.category || 'Scan an item';
-
-  if (item.image && String(item.image).trim()) {
-    currentItemImageEl.src = String(item.image).trim();
-    currentItemImageEl.classList.add('show');
-    currentItemImagePlaceholderEl.classList.add('hidden');
-
-    currentItemImageEl.onerror = () => {
-      currentItemImageEl.src = '';
-      currentItemImageEl.classList.remove('show');
-      currentItemImagePlaceholderEl.classList.remove('hidden');
-    };
-  } else {
-    currentItemImageEl.src = '';
-    currentItemImageEl.classList.remove('show');
-    currentItemImagePlaceholderEl.classList.remove('hidden');
-  }
-}
 
 function openImageOverlay(item) {
   if (!item || !item.image) return;
@@ -111,8 +77,7 @@ socket.on("game:state", (data) => {
     found: false
   }));
 
-  selectedItemIndex = items.findIndex(it => !it.found);
-  if (selectedItemIndex === -1) selectedItemIndex = null;
+
 
   totalItems = items.length;
 
@@ -208,10 +173,7 @@ function renderItemList() {
   items.forEach((item, i) => {
     const li = document.createElement('li');
     li.id = `item-row-${i}`;
-        li.className =
-      'item-row' +
-      (item.found ? ' found' : '') +
-      (i === selectedItemIndex ? ' selected' : '');
+    li.className = 'item-row' + (item.found ? ' found' : '');
 
     // Main left-side grouping
     const main = document.createElement('div');
@@ -244,7 +206,6 @@ function renderItemList() {
         img.replaceWith(ph);
       };
 
-      img.addEventListener('click', () => openImageOverlay(item));
       thumbEl = img;
     } else {
       const ph = document.createElement('div');
@@ -273,13 +234,9 @@ function renderItemList() {
     li.appendChild(main);
     li.appendChild(status);
 
-        li.addEventListener('click', (e) => {
-      // If they clicked directly on the thumbnail, let image zoom handle it
-      if (e.target.classList.contains('item-thumb')) return;
-
-      selectedItemIndex = i;
-      renderItemList();
-      showItemInScannerCard(items[i]);
+    // Whole row opens the enlarged image
+    li.addEventListener('click', () => {
+      openImageOverlay(item);
     });
 
     ul.appendChild(li);
@@ -287,26 +244,9 @@ function renderItemList() {
 }
 
 function highlightActiveItem() {
-  // If user manually selected an item and it still exists, keep showing that
-  if (
-    selectedItemIndex !== null &&
-    selectedItemIndex >= 0 &&
-    selectedItemIndex < items.length
-  ) {
-    showItemInScannerCard(items[selectedItemIndex]);
-    return;
-  }
-
-  // Otherwise default to first unfound item
-  const firstUnfoundIndex = items.findIndex(it => !it.found);
-
-  if (firstUnfoundIndex === -1) {
-    showItemInScannerCard(null);
-    return;
-  }
-
-  selectedItemIndex = firstUnfoundIndex;
-  showItemInScannerCard(items[firstUnfoundIndex]);
+  // No scanner card to update anymore.
+  // Keeping function name so the rest of the code still works.
+  return;
 }
 
 function updateProgress() {
@@ -327,12 +267,6 @@ socket.on("game:scanResult", (data) => {
       const matchedIndex = items.findIndex(it => it.name === data.matchedTitle && !it.found);
       if (matchedIndex !== -1) {
         items[matchedIndex].found = true;
-
-        // If the selected item was just found, move selection to next unfound item
-        if (selectedItemIndex === matchedIndex) {
-          const nextUnfound = items.findIndex(it => !it.found);
-          selectedItemIndex = nextUnfound !== -1 ? nextUnfound : null;
-        }
       }
     }
 
