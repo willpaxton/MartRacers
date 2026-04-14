@@ -178,10 +178,7 @@ function renderItemList() {
   items.forEach((item, i) => {
     const li = document.createElement('li');
     li.id = `item-row-${i}`;
-        li.className =
-      'item-row' +
-      (item.found ? ' found' : '') +
-      (i === selectedItemIndex ? ' selected' : '');
+    li.className = 'item-row' + (item.found ? ' found' : '');
 
     // Main left-side grouping
     const main = document.createElement('div');
@@ -214,7 +211,6 @@ function renderItemList() {
         img.replaceWith(ph);
       };
 
-      img.addEventListener('click', () => openImageOverlay(item));
       thumbEl = img;
     } else {
       const ph = document.createElement('div');
