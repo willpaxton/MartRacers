@@ -48,7 +48,7 @@
     document.getElementById("joinGame").addEventListener("click", () => {
       let username = document.getElementById("name").value.trim();
       localStorage.setItem("username", username);
-      const gamecode = document.getElementById("gameCode").value.trim().toUpperCase();
+      const gamecode = document.getElementById("gameCode").value.trim().toUpperCase() || "ERROR";
       window.location.replace("/lobby/" + gamecode);
     });
   </script>
