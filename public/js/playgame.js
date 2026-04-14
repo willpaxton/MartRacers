@@ -323,15 +323,19 @@ socket.on("game:scanResult", (data) => {
     shakeFirstUnfoundRow();
   }
 });
-
+// Changed the game over data// 
 socket.on("game:finish", (data) => {
   stopTimer();
+  stopScanner();
 
   if (data.winnerPlayerId === playerId) {
     document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
     document.getElementById('win-overlay').classList.add('visible');
   } else {
-    showToast('❌ Opponent won!', 'error');
+    document.getElementById('win-emoji').textContent = '😔';
+    document.getElementById('win-title').textContent = 'YOU LOST';
+    document.getElementById('win-sub').textContent   = 'Your opponent found everything first.';
+    document.getElementById('win-overlay').classList.add('visible');
   }
 });
 // #endregion
