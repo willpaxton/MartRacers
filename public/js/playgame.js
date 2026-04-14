@@ -57,7 +57,7 @@ socket.on("game:state", (data) => {
 
   renderItemList();
   updateProgress();
-  highlightActiveItem();
+  //highlightActiveItem();
   //console.log(data.startedAt, Date.now());
 
   elapsedSecs = Math.floor((Date.now() - data.startedAt) / 1000);
@@ -68,6 +68,7 @@ socket.on("game:state", (data) => {
     document.getElementById('countdown-overlay').classList.add('hidden');
   }
 });
+
 
 // ----------------------
 // COUNTDOWN + TIMER
@@ -130,13 +131,13 @@ function formatTime(secs) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function resetCountdownState() {
-  countdownStarted = false;
-  if (countdownTimeout) {
-    clearTimeout(countdownTimeout);
-    countdownTimeout = null;
-  }
-}
+// function resetCountdownState() {
+//   countdownStarted = false;
+//   if (countdownTimeout) {
+//     clearTimeout(countdownTimeout);
+//     countdownTimeout = null;
+//   }
+// }
 
 // ----------------------
 // UI RENDERING
@@ -164,48 +165,38 @@ function renderItemList() {
     status.className = 'item-status';
     status.textContent = item.found ? '✅' : '';
 
-
-        li.addEventListener('click', (e) => {
-      // If they clicked directly on the thumbnail, let image zoom handle it
-      if (e.target.classList.contains('item-thumb')) return;
-
-      selectedItemIndex = i;
-      renderItemList();
-      showItemInScannerCard(items[i]);
-    });
-
     ul.appendChild(li);
   });
 }
 
-function highlightActiveItem() {
-  const item = items.find(it => !it.found);
-  if (!item) return;
+// function highlightActiveItem() {
+//   const item = items.find(it => !it.found);
+//   if (!item) return;
 
-  document.getElementById('current-item-name').textContent = item.name;
-  document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
-  //document.getElementById('current-item-icon').textContent = '📦';
-  // If user manually selected an item and it still exists, keep showing that
-  if (
-    selectedItemIndex !== null &&
-    selectedItemIndex >= 0 &&
-    selectedItemIndex < items.length
-  ) {
-    //showItemInScannerCard(items[selectedItemIndex]);
-    return;
-  }
+//   document.getElementById('current-item-name').textContent = item.name;
+//   document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
+//   //document.getElementById('current-item-icon').textContent = '📦';
+//   // If user manually selected an item and it still exists, keep showing that
+//   if (
+//     selectedItemIndex !== null &&
+//     selectedItemIndex >= 0 &&
+//     selectedItemIndex < items.length
+//   ) {
+//     //showItemInScannerCard(items[selectedItemIndex]);
+//     return;
+//   }
 
-  // Otherwise default to first unfound item
-  const firstUnfoundIndex = items.findIndex(it => !it.found);
+//   // Otherwise default to first unfound item
+//   const firstUnfoundIndex = items.findIndex(it => !it.found);
 
-  if (firstUnfoundIndex === -1) {
-    showItemInScannerCard(null);
-    return;
-  }
+//   if (firstUnfoundIndex === -1) {
+//     showItemInScannerCard(null);
+//     return;
+//   }
 
-  selectedItemIndex = firstUnfoundIndex;
-  showItemInScannerCard(items[firstUnfoundIndex]);
-}
+//   selectedItemIndex = firstUnfoundIndex;
+//   showItemInScannerCard(items[firstUnfoundIndex]);
+// }
 
 function updateProgress() {
   foundCount = items.filter(i => i.found).length;
@@ -236,7 +227,7 @@ socket.on("game:scanResult", (data) => {
 
     updateProgress();
     renderItemList();
-    highlightActiveItem();
+    // highlightActiveItem();
     showToast(`✅ Found item!`, 'success');
   } else {
     showToast(data.message || '❌ Wrong item', 'error');
