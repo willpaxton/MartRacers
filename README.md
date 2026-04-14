@@ -48,9 +48,11 @@ During each scrum meeting and sprint transition, group members are allowed to gi
 
 Definition of Ready:
 The team has been accepting tasks into the sprint whenever they fall in line with our Release Plan and Sprint Goal for each sprint.  We have been making a sprint goal during each sprint transitions and pick tasks based on what needs to be done to achieve that sprint goal.  A few tasks have been put as optional in case we have extra sprints to develop those specific items.  
+Update (4/14/2026): At this point in the project, tasks have to be nessecary to the project to be included in a sprint.  Due to the time constraints on the project, we have to be much more selective about the items that are being worked on week-to-week in order to meet the minimum viable product for this project.  
 
 Definition of Done:
-We consider a task as done whenever all members on the team are satisfied with the result of the specific task. This was showcased within the acceptance of the front-end design as team members had disagreements about the look of it, which took multiple sprints to get to a design the team liked.  
+We consider a task as done whenever all members on the team are satisfied with the result of the specific task. This was showcased within the acceptance of the front-end design as team members had disagreements about the look of it, which took multiple sprints to get to a design the team liked.
+Update (4/14/2026): Over the past few sprints, tasks have been under a higher level of scrutiny as we build towards a completed game. At this point in development, we want to ensure that bugs are not be introduced into the product to allow us more time to fix other bugs during the last few sprints. 
 
 Architectural Design:
 This project uses a client-server architecture, where the client and server will be communicating back and forth to deliver certain game data.  
