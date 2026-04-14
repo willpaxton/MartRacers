@@ -1,5 +1,6 @@
 const lobbyId = window.location.pathname.split('/').filter(segment => segment).at(-1);
 
+// Start socket connection
 const socket = io();
 window.socket = socket;
 
@@ -9,7 +10,7 @@ if (!playerId) {
   window.location.replace("/");
 }
 
-// STATE
+// Local Variables
 let items = [];
 let totalItems = 0;
 let foundCount = 0;
@@ -26,15 +27,24 @@ const currentItemSubEl = document.getElementById('current-item-sub');
 const currentItemImageEl = document.getElementById('current-item-image');
 const currentItemImagePlaceholderEl = document.getElementById('current-item-image-placeholder');
 
+// General debugging of events
 socket.onAny((event, data) => {
   console.log("EVENT:", event, data);
 });
 
+// Attempt to join/rejoin the lobby.
+// lobby:not_connected = they were never here, redirect to index
+// game:state = update player page info with current game state (items, opponent info, timer, etc)
 socket.emit("lobby:rejoin", {
   lobbyId,
   playerId
 });
 
+socket.on("lobby:not_connected", () => {
+  window.location.replace("/");
+});
+
+// Initial setting up page and starting information.
 socket.on("game:state", (data) => {
   const raw = data.yourItems || [];
 
@@ -57,8 +67,6 @@ socket.on("game:state", (data) => {
 
   renderItemList();
   updateProgress();
-  //highlightActiveItem();
-  //console.log(data.startedAt, Date.now());
 
   elapsedSecs = Math.floor((Date.now() - data.startedAt) / 1000);
   startTimer();
@@ -73,6 +81,7 @@ socket.on("game:state", (data) => {
 // ----------------------
 // COUNTDOWN + TIMER
 // ----------------------
+// #region Countdown
 let countdownStarted = false;
 let countdownTimeout = null;
 
@@ -130,18 +139,13 @@ function formatTime(secs) {
   const s = secs % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
+// #endregion
 
-// function resetCountdownState() {
-//   countdownStarted = false;
-//   if (countdownTimeout) {
-//     clearTimeout(countdownTimeout);
-//     countdownTimeout = null;
-//   }
-// }
 
 // ----------------------
 // UI RENDERING
 // ----------------------
+// #region Rendering
 function renderItemList() {
   const ul = document.getElementById('item-list');
   ul.innerHTML = '';
@@ -169,35 +173,6 @@ function renderItemList() {
   });
 }
 
-// function highlightActiveItem() {
-//   const item = items.find(it => !it.found);
-//   if (!item) return;
-
-//   document.getElementById('current-item-name').textContent = item.name;
-//   document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
-//   //document.getElementById('current-item-icon').textContent = '📦';
-//   // If user manually selected an item and it still exists, keep showing that
-//   if (
-//     selectedItemIndex !== null &&
-//     selectedItemIndex >= 0 &&
-//     selectedItemIndex < items.length
-//   ) {
-//     //showItemInScannerCard(items[selectedItemIndex]);
-//     return;
-//   }
-
-//   // Otherwise default to first unfound item
-//   const firstUnfoundIndex = items.findIndex(it => !it.found);
-
-//   if (firstUnfoundIndex === -1) {
-//     showItemInScannerCard(null);
-//     return;
-//   }
-
-//   selectedItemIndex = firstUnfoundIndex;
-//   showItemInScannerCard(items[firstUnfoundIndex]);
-// }
-
 function updateProgress() {
   foundCount = items.filter(i => i.found).length;
   const pct = totalItems > 0 ? (foundCount / totalItems) * 100 : 0;
@@ -207,9 +182,24 @@ function updateProgress() {
   document.getElementById('list-pill').textContent = `${foundCount} / ${totalItems}`;
 }
 
+// Animated shake for if the scanned item was incorrect.
+function shakeFirstUnfoundRow() {
+  const idx = items.findIndex(it => !it.found);
+  if (idx === -1) return;
+
+  const row = document.getElementById(`item-row-${idx}`);
+  if (!row) return;
+
+  row.classList.add('shake');
+  row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
+}
+// #endregion
+
+
 // ----------------------
 // SERVER-DRIVEN ITEM MATCHING
 // ----------------------
+// #region Socket Events
 socket.on("game:scanResult", (data) => {
   if (data.correct) {
     if (data.matchedTitle) {
@@ -245,21 +235,13 @@ socket.on("game:finish", (data) => {
     showToast('❌ Opponent won!', 'error');
   }
 });
+// #endregion
 
-function shakeFirstUnfoundRow() {
-  const idx = items.findIndex(it => !it.found);
-  if (idx === -1) return;
-
-  const row = document.getElementById(`item-row-${idx}`);
-  if (!row) return;
-
-  row.classList.add('shake');
-  row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
-}
 
 // ----------------------
 // SCANNER / MANUAL UPC
 // ----------------------
+// #region Scanner
 function startScanner() {
   const viewport = document.getElementById('scanner-viewport');
   viewport.classList.add('active');
@@ -375,3 +357,4 @@ function showToast(msg, type = '') {
     el.className = '';
   }, 2400);
 }
+// #endregion
