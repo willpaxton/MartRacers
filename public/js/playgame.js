@@ -1,11 +1,12 @@
-const socket = io();
+const lobbyId = window.location.pathname.split('/').filter(segment => segment).at(-1);
 
-const lobbyId = new URLSearchParams(window.location.search).get("lobbyId");
+const socket = io();
+window.socket = socket;
 
 let playerId = localStorage.getItem("playerId");
+// IF no player ID, they should not have gotten this far... kick em
 if (!playerId) {
-  playerId = crypto.randomUUID();
-  localStorage.setItem("playerId", playerId);
+  window.location.replace("/");
 }
 
 // STATE
@@ -29,18 +30,10 @@ socket.onAny((event, data) => {
   console.log("EVENT:", event, data);
 });
 
-function init() {
-  if (!lobbyId || !playerId) {
-    document.getElementById('current-item-name').textContent = 'Missing game info.';
-    document.getElementById('current-item-sub').textContent = 'Go back to the lobby.';
-    return;
-  }
-
-  socket.emit("game:rejoin", {
-    lobbyId,
-    playerId
-  });
-}
+socket.emit("lobby:rejoin", {
+  lobbyId,
+  playerId
+});
 
 socket.on("game:state", (data) => {
   const raw = data.yourItems || [];
@@ -48,13 +41,9 @@ socket.on("game:state", (data) => {
   items = raw.map(item => ({
     name: item.title,
     category: item.category,
-    upc: item.upc,
     image: item.image,
     found: false
   }));
-
-  selectedItemIndex = items.findIndex(it => !it.found);
-  if (selectedItemIndex === -1) selectedItemIndex = null;
 
   totalItems = items.length;
 
@@ -69,7 +58,15 @@ socket.on("game:state", (data) => {
   renderItemList();
   updateProgress();
   highlightActiveItem();
-  startCountdown();
+  //console.log(data.startedAt, Date.now());
+
+  elapsedSecs = Math.floor((Date.now() - data.startedAt) / 1000);
+  startTimer();
+  if (data.startedAt > Date.now()) {
+    startCountdown();
+  } else {
+    document.getElementById('countdown-overlay').classList.add('hidden');
+  }
 });
 
 // ----------------------
@@ -107,7 +104,6 @@ function startCountdown() {
 
       setTimeout(() => {
         overlay.classList.add('hidden');
-        startTimer();
       }, 500);
     }, 800);
   }
@@ -116,6 +112,8 @@ function startCountdown() {
 }
 
 function startTimer() {
+  elapsedSecs++;
+  document.getElementById('elapsed').textContent = formatTime(elapsedSecs);
   timerInterval = setInterval(() => {
     elapsedSecs++;
     document.getElementById('elapsed').textContent = formatTime(elapsedSecs);
@@ -166,12 +164,6 @@ function renderItemList() {
     status.className = 'item-status';
     status.textContent = item.found ? '✅' : '';
 
-    main.appendChild(num);
-    main.appendChild(thumbEl);
-    main.appendChild(info);
-
-    li.appendChild(main);
-    li.appendChild(status);
 
         li.addEventListener('click', (e) => {
       // If they clicked directly on the thumbnail, let image zoom handle it
@@ -192,14 +184,14 @@ function highlightActiveItem() {
 
   document.getElementById('current-item-name').textContent = item.name;
   document.getElementById('current-item-sub').textContent = item.category || 'Scan an item';
-  document.getElementById('current-item-icon').textContent = '📦';
+  //document.getElementById('current-item-icon').textContent = '📦';
   // If user manually selected an item and it still exists, keep showing that
   if (
     selectedItemIndex !== null &&
     selectedItemIndex >= 0 &&
     selectedItemIndex < items.length
   ) {
-    showItemInScannerCard(items[selectedItemIndex]);
+    //showItemInScannerCard(items[selectedItemIndex]);
     return;
   }
 
@@ -392,5 +384,3 @@ function showToast(msg, type = '') {
     el.className = '';
   }, 2400);
 }
-
-init();
