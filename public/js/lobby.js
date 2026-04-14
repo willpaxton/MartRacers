@@ -74,15 +74,13 @@ socket.on("lobby:joined", (data) => {
 // Host clicks Start Game
 startGameBtn.addEventListener("click", () => {
   socket.emit("game:start", {
-    lobbyId,
-    playerId
+    lobbyId
   });
 });
 
 // Server tells everyone to move to the game page
-socket.on("game:starting", (data) => {
-  const nextLobbyId = data?.lobbyId || lobbyId;
-  window.location.href = `/game.html?lobbyId=${encodeURIComponent(nextLobbyId)}`;
+socket.on("game:starting", () => {
+  window.location.replace("/game/" + lobbyId);
 });
 
 socket.on("lobby:error", (err) => {
