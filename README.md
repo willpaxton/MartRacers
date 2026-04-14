@@ -13,7 +13,11 @@ Release Plan: Our initial release plan had us doing Basic Server/Client testing 
 Sprint Reports are located in the main branch under the "Sprint_Reports" folder.
 
 Kanban board is located under GitHub projects; however, it is inaccessible to people outside of the project team.  This is the state of the Kanban board as of 3/12/2026.
+Midterm 1 Kanban Board:
 <img width="1685" height="966" alt="image" src="https://github.com/user-attachments/assets/daaa73cf-d8f9-42e0-84f1-4c1bec322635" />
+Midterm 2 Kanban Board:
+<img width="1341" height="423" alt="image" src="https://github.com/user-attachments/assets/86459d4f-b869-4b9b-941a-cfac635112dd" />
+
 
 Source Code: Source code is split into two primary branches, one for front-end development (FrontEnd) and one for back-end/prototyping (prototype).  These two branches will be merged in a future sprint as we work towards a final deliverable.  
 
