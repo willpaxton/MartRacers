@@ -9,6 +9,7 @@ Release Plan: Our initial release plan had us doing Basic Server/Client testing 
 - Sprint 8: Finalize gameplay loop (for release v0.1.0) and integrate front-end into product.
 - Sprint 9: Focus on bug fixes and polishing the game, receive feedback from all members about last changes.
 - Sprint 10: Finish up documentation and deliverables.
+Update (4/16/2026): Sprint 9 is marking the end of development of the product, leading to our first release.  Although our release plan did not work out 1:1 of how we planned, we still are ready to spend Sprint 10 on documentation, bug fixes, and any other final elements to the project.  
 
 Sprint Reports are located in the main branch under the "Sprint_Reports" folder.
 
