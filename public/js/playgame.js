@@ -1,69 +1,154 @@
+const lobbyId = window.location.pathname.split('/').filter(segment => segment).at(-1);
 
+// Start socket connection
+const socket = io();
+window.socket = socket;
 
-// STATE
-let items         = [];
-let totalItems    = 0;
-let foundCount    = 0;
+let playerId = localStorage.getItem("playerId");
+// IF no player ID, they should not have gotten this far... kick em
+if (!playerId) {
+  window.location.replace("/");
+} 
+
+// Local Variables
+let items = [];
+let totalItems = 0;
+let foundCount = 0;
 let scannerActive = false;
-let elapsedSecs   = 0;
+let elapsedSecs = 0;
 let timerInterval = null;
+const imgOverlay = document.getElementById('img-overlay');
+const imgOverlayPhoto = document.getElementById('img-overlay-photo');
+const imgOverlayTitle = document.getElementById('img-overlay-title');
+const imgOverlaySub = document.getElementById('img-overlay-sub');
 
-function init() {
-  // Pull item list from sessionStorage (set by create-game.js)
-  const stored = sessionStorage.getItem('gameItems');
 
-  if (!stored) {
-    document.getElementById('current-item-name').textContent = 'No items loaded.';
-    document.getElementById('current-item-sub').textContent  = 'Go back and generate a game first.';
-    console.error('playgame.js: no gameItems found in sessionStorage.');
-    return;
+function openImageOverlay(item) {
+  if (!item || !item.image) return;
+
+  imgOverlayPhoto.src = item.image;
+  imgOverlayPhoto.alt = item.name || 'Item image';
+  imgOverlayTitle.textContent = item.name || 'Item';
+  imgOverlaySub.textContent = item.category || '';
+  imgOverlay.classList.add('open');
+}
+
+function closeImageOverlay() {
+  imgOverlay.classList.remove('open');
+  imgOverlayPhoto.src = '';
+}
+
+imgOverlay.addEventListener('click', (e) => {
+  if (e.target === imgOverlay) {
+    closeImageOverlay();
   }
+});
 
-  const raw = JSON.parse(stored);
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && imgOverlay.classList.contains('open')) {
+    closeImageOverlay();
+  }
+});
 
-  items      = raw.map(item => ({ ...item, found: false }));
+
+socket.onAny((event, data) => {
+  console.log("EVENT:", event, data);
+});
+
+// Attempt to join/rejoin the lobby.
+// lobby:not_connected = they were never here, redirect to index
+// game:state = update player page info with current game state (items, opponent info, timer, etc)
+socket.emit("lobby:rejoin", {
+  lobbyId,
+  playerId
+});
+
+socket.on("lobby:not_connected", () => {
+  window.location.replace("/");
+});
+
+// Initial setting up page and starting information.
+socket.on("game:state", (data) => {
+  const raw = data.yourItems || [];
+
+  items = raw.map(item => ({
+    name: item.title,
+    category: item.category,
+    image: item.image,
+    found: item.found
+  }));
+
+
+
   totalItems = items.length;
 
   document.getElementById('total-count').textContent = totalItems;
-  document.getElementById('list-pill').textContent   = `0 / ${totalItems}`;
+  document.getElementById('list-pill').textContent = `0 / ${totalItems}`;
+
+  if (data.opponent) {
+    document.getElementById("opp-name").textContent = data.opponent.username;
+    document.getElementById("opp-prog").textContent = `${data.opponent.score} / ${totalItems} found`;
+  }
 
   renderItemList();
   updateProgress();
-  highlightActiveItem();
-}
 
-// 
-//  COUNTDOWN  3… 2… 1… GO! This is the timer!
-// 
+  elapsedSecs = Math.floor((Date.now() - data.startedAt) / 1000);
+  startTimer();
+  if (data.startedAt > Date.now()) {
+    startCountdown();
+  } else {
+    document.getElementById('countdown-overlay').classList.add('hidden');
+  }
+});
+
+
+// ----------------------
+// COUNTDOWN + TIMER
+// ----------------------
+// #region Countdown
+let countdownStarted = false;
+let countdownTimeout = null;
+
 function startCountdown() {
+  // Prevent duplicate countdowns from starting
+  if (countdownStarted) return;
+  countdownStarted = true;
+
   const overlay = document.getElementById('countdown-overlay');
-  const numEl   = document.getElementById('countdown-num');
+  const numEl = document.getElementById('countdown-num');
+
   let count = 3;
 
-  const tick = () => {
+  function tick() {
     if (count > 0) {
-      numEl.textContent = count;
+      numEl.textContent = String(count);
       numEl.classList.remove('go');
       count--;
-      setTimeout(tick, 1000);
-    } else {
-      numEl.textContent = 'GO!';
-      numEl.classList.add('go');
-      setTimeout(() => {
-        overlay.classList.add('fade-out');
-        setTimeout(() => overlay.classList.add('hidden'), 500);
-        startTimer();
-      }, 800);
+
+      countdownTimeout = setTimeout(tick, 1000);
+      return;
     }
-  };
+
+    // Show GO
+    numEl.textContent = 'GO!';
+    numEl.classList.add('go');
+
+    countdownTimeout = setTimeout(() => {
+      overlay.classList.add('fade-out');
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 500);
+    }, 800);
+  }
 
   tick();
 }
 
-// 
-//  this is for the Timer!!!
-// 
 function startTimer() {
+  elapsedSecs++;
+  document.getElementById('elapsed').textContent = formatTime(elapsedSecs);
   timerInterval = setInterval(() => {
     elapsedSecs++;
     document.getElementById('elapsed').textContent = formatTime(elapsedSecs);
@@ -79,117 +164,169 @@ function formatTime(secs) {
   const s = secs % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
+// #endregion
 
- 
+
+// ----------------------
+// UI RENDERING
+// ----------------------
+// #region Rendering
 function renderItemList() {
-  const ul        = document.getElementById('item-list');
-  const activeIdx = getNextIndex();
-  ul.innerHTML    = '';
+  const ul = document.getElementById('item-list');
+  ul.innerHTML = '';
 
   items.forEach((item, i) => {
     const li = document.createElement('li');
-    li.id    = `item-row-${i}`;
-    li.className = 'item-row' +
-      (item.found                      ? ' found'  : '') +
-      (!item.found && i === activeIdx  ? ' active' : '');
+    li.id = `item-row-${i}`;
+    li.className = 'item-row' + (item.found ? ' found' : '');
 
-    li.innerHTML = `
-      <div class="item-num">${i + 1}</div>
-      <div class="item-info">
-        <div class="item-name">${item.emoji ? item.emoji + ' ' : ''}${item.name}</div>
-        <div class="item-hint">${item.category || ''}</div>
-      </div>
-      <div class="item-status">${item.found ? '✅' : ''}</div>
+    // Main left-side grouping
+    const main = document.createElement('div');
+    main.className = 'item-main';
+
+    // Item number
+    const num = document.createElement('div');
+    num.className = 'item-num';
+    num.textContent = String(i + 1);
+
+    // Thumbnail or placeholder
+    let thumbEl;
+    const imgUrl = item.image && String(item.image).trim()
+      ? String(item.image).trim()
+      : '';
+
+    if (imgUrl) {
+      const img = document.createElement('img');
+      img.className = 'item-thumb';
+      img.src = imgUrl;
+      img.alt = item.name || 'Item image';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+
+      img.onerror = () => {
+        const ph = document.createElement('div');
+        ph.className = 'item-thumb-placeholder';
+        ph.textContent = 'No image';
+        img.replaceWith(ph);
+      };
+
+      thumbEl = img;
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'item-thumb-placeholder';
+      ph.textContent = 'No image';
+      thumbEl = ph;
+    }
+
+    // Item text
+    const info = document.createElement('div');
+    info.className = 'item-info';
+    info.innerHTML = `
+      <div class="item-name">${item.name}</div>
+      <div class="item-hint">${item.category || ''}</div>
     `;
+
+    // Right-side found checkmark
+    const status = document.createElement('div');
+    status.className = 'item-status';
+    status.textContent = item.found ? '✅' : '';
+
+    main.appendChild(num);
+    main.appendChild(thumbEl);
+    main.appendChild(info);
+
+    li.appendChild(main);
+    li.appendChild(status);
+
+    // Whole row opens the enlarged image
+    li.addEventListener('click', () => {
+      openImageOverlay(item);
+    });
+
     ul.appendChild(li);
   });
 }
 
-
-function getNextIndex() {
-  return items.findIndex(it => !it.found);
-}
-
-
 function highlightActiveItem() {
-  const idx = getNextIndex();
-  if (idx === -1) return;
-  const item = items[idx];
-  document.getElementById('current-item-name').textContent = `${item.emoji || '📦'} ${item.name}`;
-  document.getElementById('current-item-sub').textContent  = item.category || 'Scan the barcode';
-  document.getElementById('current-item-icon').textContent = item.emoji || '📦';
+  // No scanner card to update anymore.
+  // Keeping function name so the rest of the code still works.
+  return;
 }
-
 
 function updateProgress() {
   foundCount = items.filter(i => i.found).length;
-  const pct  = totalItems > 0 ? (foundCount / totalItems) * 100 : 0;
+  const pct = totalItems > 0 ? (foundCount / totalItems) * 100 : 0;
 
   document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('found-count').textContent   = foundCount;
-  document.getElementById('list-pill').textContent     = `${foundCount} / ${totalItems}`;
+  document.getElementById('found-count').textContent = foundCount;
+  document.getElementById('list-pill').textContent = `${foundCount} / ${totalItems}`;
 }
 
-// 
-//  MARK ITEM FOUND
-// 
-function markFound(upc) {
-  const scannedIdx = items.findIndex(it => it.upc === upc && !it.found);
-  const activeIdx  = getNextIndex();
-
-  // UPC not on the list at all
-  if (scannedIdx === -1) {
-    showToast('❌ Item not on your list!', 'error');
-    shakeActiveRow();
-    return;
-  }
-
-  
-  if (scannedIdx !== activeIdx) {
-    showToast('⚠️ Scan items in order!', 'error');
-    shakeActiveRow();
-    return;
-  }
-
-  // Correct scan!
-  items[scannedIdx].found = true;
-  updateProgress();
-  renderItemList();
-  highlightActiveItem();
-  showToast(`✅ Found: ${items[scannedIdx].name}`, 'success');
-
-  if (foundCount === totalItems) {
-    setTimeout(triggerWin, 600);
-  }
-}
-
-function shakeActiveRow() {
-  const idx = getNextIndex();
+// Animated shake for if the scanned item was incorrect.
+function shakeFirstUnfoundRow() {
+  const idx = items.findIndex(it => !it.found);
   if (idx === -1) return;
+
   const row = document.getElementById(`item-row-${idx}`);
   if (!row) return;
+
   row.classList.add('shake');
   row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
 }
+// #endregion
 
-// 
-//  WIN SCREEN
-// 
-function triggerWin() {
+
+// ----------------------
+// SERVER-DRIVEN ITEM MATCHING
+// ----------------------
+// #region Socket Events
+socket.on("game:scanResult", (data) => {
+  if (data.correct) {
+    if (data.matchedTitle) {
+      const matchedIndex = items.findIndex(it => it.name === data.matchedTitle && !it.found);
+      if (matchedIndex !== -1) {
+        items[matchedIndex].found = true;
+      }
+    }
+
+    updateProgress();
+    renderItemList();
+    // highlightActiveItem();
+    showToast(`✅ Found item!`, 'success');
+  } else {
+    showToast(data.message || '❌ Wrong item', 'error');
+    shakeFirstUnfoundRow();
+  }
+});
+// Changed the game over data// 
+socket.on("game:finish", (data) => {
   stopTimer();
   stopScanner();
-  document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
-  document.getElementById('win-overlay').classList.add('visible');
-}
 
-// 
-//   BARCODE SCANNER
-// 
+  if (data.winnerPlayerId === playerId) {
+    document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
+    document.getElementById('win-overlay').classList.add('visible');
+  } else {
+    document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
+    document.getElementById('win-emoji').textContent = '😔';
+    document.getElementById('win-title').textContent = 'YOU LOST';
+    document.getElementById('win-sub').textContent   = 'Your opponent found everything first.';
+    document.getElementById('win-overlay').classList.add('visible');
+  }
+});
+// #endregion
+
+
+// ----------------------
+// SCANNER / MANUAL UPC
+// ----------------------
+// #region Scanner
 function startScanner() {
   const viewport = document.getElementById('scanner-viewport');
   viewport.classList.add('active');
   document.getElementById('start-scanner').disabled = true;
-  document.getElementById('stop-scanner').disabled  = false;
+  document.getElementById('stop-scanner').disabled = false;
   document.getElementById('scanner-status-pill').textContent = 'Scanning…';
   scannerActive = true;
 
@@ -225,13 +362,18 @@ function startScanner() {
 
   Quagga.onDetected(result => {
     const code = result.codeResult.code;
-    const now  = Date.now();
+    const now = Date.now();
     if (code === lastCode && now - lastTime < 2000) return;
     lastCode = code;
     lastTime = now;
 
     setScanStatus(`Scanned: ${code}`, 'success');
-    markFound(code);
+
+    socket.emit("game:scanUpc", {
+      lobbyId,
+      playerId,
+      upc: code
+    });
   });
 }
 
@@ -246,19 +388,18 @@ function stopScanner() {
 function resetScannerUI() {
   document.getElementById('scanner-viewport').classList.remove('active');
   document.getElementById('start-scanner').disabled = false;
-  document.getElementById('stop-scanner').disabled  = true;
+  document.getElementById('stop-scanner').disabled = true;
   document.getElementById('scanner-status-pill').textContent = 'Ready';
 }
 
 function setScanStatus(msg, type) {
-  const el       = document.getElementById('scan-status');
+  const el = document.getElementById('scan-status');
   el.textContent = msg;
-  el.className   = type;
+  el.className = type;
 }
 
-
 document.getElementById('toggle-manual').addEventListener('click', () => {
-  const sec     = document.getElementById('manual-section');
+  const sec = document.getElementById('manual-section');
   const visible = sec.classList.toggle('visible');
   document.getElementById('toggle-manual').textContent = visible
     ? '✖ Hide Manual Entry'
@@ -268,7 +409,13 @@ document.getElementById('toggle-manual').addEventListener('click', () => {
 document.getElementById('submit-upc').addEventListener('click', () => {
   const val = document.getElementById('manual-upc').value.trim();
   if (!val) return;
-  markFound(val);
+
+  socket.emit("game:scanUpc", {
+    lobbyId,
+    playerId,
+    upc: val
+  });
+
   document.getElementById('manual-upc').value = '';
 });
 
@@ -276,21 +423,18 @@ document.getElementById('manual-upc').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('submit-upc').click();
 });
 
-
 document.getElementById('start-scanner').addEventListener('click', startScanner);
 document.getElementById('stop-scanner').addEventListener('click', stopScanner);
-
 
 let toastTimeout;
 
 function showToast(msg, type = '') {
-  const el       = document.getElementById('toast');
+  const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className   = `show ${type}`;
+  el.className = `show ${type}`;
   clearTimeout(toastTimeout);
-  toastTimeout   = setTimeout(() => { el.className = ''; }, 2400);
+  toastTimeout = setTimeout(() => {
+    el.className = '';
+  }, 2400);
 }
-
-
-init();
-startCountdown();
+// #endregion
