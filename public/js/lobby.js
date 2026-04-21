@@ -1,9 +1,9 @@
-const lobbyId = window.location.pathname.split('/').filter(segment => segment).at(-1); // Get the last non-empty segment as lobbyId
+const lobbyId = window.location.pathname.split('/').filter(segment => segment).at(-1);
 
 const socket = io();
 window.socket = socket;
 
-let players = []; // Local copy of players in this lobby, will be updated from server
+let players = [];
 
 let playerId = localStorage.getItem("playerId");
 if (!playerId) {
@@ -11,39 +11,79 @@ if (!playerId) {
   localStorage.setItem("playerId", playerId);
 }
 
+const playersEl = document.getElementById("players");
+const lobbyIdEl = document.getElementById("lobbyId");
+const hostControlsEl = document.getElementById("hostControls");
+const startGameBtn = document.getElementById("startGameBtn");
+
 socket.onAny((event, data) => {
-    console.log("EVENT:", event, data);
+  console.log("EVENT:", event, data);
 });
 
-// Check if user disconnected
+// Show lobby ID on page
+lobbyIdEl.textContent = lobbyId;
+
+// Ask server if this user is already in the lobby (refresh case)
 socket.emit("lobby:rejoin", {
-    playerId,
-    lobbyId
+  playerId,
+  lobbyId
 });
 
-// If not connected, it means this player has never joined this lobby before, so we ask for username and join as a new player
-socket.on("lobby:not_connected", (data) => {
-  username = localStorage.getItem("username") || ("Player_" + Math.floor(Math.random() * 1000));
+/**
+ * Render players list and decide whether current user is host.
+ */
+function renderLobby(playersList) {
+  players = playersList || [];
+
+  playersEl.textContent = players.length
+    ? players.map(p => p.username + (p.host ? " (Host)" : "")).join(", ")
+    : "Waiting for players...";
+
+  const me = players.find(p => p.playerId === playerId);
+  const amHost = !!me?.host;
+
+  // Only host can see the Start button
+  hostControlsEl.style.display = amHost ? "block" : "none";
+
+  // Optional: only enable start if 2+ players are present
+  startGameBtn.disabled = players.length < 2;
+}
+
+// If player has never joined, create username and join now
+socket.on("lobby:not_connected", () => {
+  const username = localStorage.getItem("username") || ("Player_" + Math.floor(Math.random() * 1000));
+  localStorage.setItem("username", username);
+
   socket.emit("lobby:join", {
     playerId,
     lobbyId,
     username
-});
+  });
 });
 
-// If connected, it means this player has already joined this lobby before, so we just update the players list and UI
+// Already a member of the lobby (refresh case)
 socket.on("lobby:connected", (data) => {
-    players = data.players; // Update local players list with the one from the server
-    document.getElementById("players").textContent = players.map(p => p.username).join(", ");
+  renderLobby(data.players);
 });
 
-// When a new player joins, update the players list and UI
+// New player joined / players updated
 socket.on("lobby:joined", (data) => {
-    players = data.players; // Update local players list with the one from the server
-    document.getElementById("players").textContent = players.map(p => p.username).join(", ");
+  renderLobby(data.players);
 });
 
+// Host clicks Start Game
+startGameBtn.addEventListener("click", () => {
+  socket.emit("game:start", {
+    lobbyId
+  });
+});
 
-// TEMP code to display lobby ID on the page, you can remove this later
-document.getElementById("lobbyId").textContent = lobbyId;
+// Server tells everyone to move to the game page
+socket.on("game:starting", () => {
+  window.location.replace("/game/" + lobbyId);
+});
 
+socket.on("lobby:error", (err) => {
+  console.error("Lobby error:", err);
+  alert(err?.message || "Lobby error.");
+});

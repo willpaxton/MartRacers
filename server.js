@@ -61,6 +61,16 @@ app.get('/lobby/:id', (req, res) => {
   }
 });
 
+app.get('/game/:id', (req, res) => {
+  // Extract the lobby ID from the URL parameters
+  const roomID = req.params.id; 
+  if (getLobby(roomID)) {
+      res.sendFile(__dirname + '/public/game.html');
+  } else {
+      res.redirect('/'); // Redirect to home if lobby doesn't exist
+  }
+});
+
 /**
  * Helper: find the lobby + player record for the current socket.
  * This keeps the scan logic clean and avoids repeating the same lookup code.
@@ -126,15 +136,17 @@ io.on("connection", (socket) => {
    * connected = you are already a member of this lobby, welcome back! (handles refresh case)
    * Payload: { lobbyId, playerId }
    */
-    socket.on("lobby:rejoin", (payload) => {
-    const {lobbyId, playerId } = payload
+  socket.on("lobby:rejoin", (payload) => {
+    const { lobbyId, playerId } = payload;
     const lobby = getLobby(lobbyId);
+
     if (!lobby) {
       return socket.emit("lobby:error", { message: "Lobby not found." });
     }
+
     const player = lobby.players.find(p => p.playerId === playerId);
 
-    // player is not in this lobby, they need to join first
+    // Player is not in this lobby, they need to join first
     if (!player) {
       return socket.emit("lobby:not_connected", { message: "Player not in this lobby." });
     }
@@ -146,10 +158,32 @@ io.on("connection", (socket) => {
     socket.join(lobbyId);
     socket.playerId = playerId; // Attach playerId to socket for easy lookup on disconnect
 
-    return socket.emit("lobby:connected", {
+    if (lobby.status === "in_game") {
+      return socket.emit("game:state", {
       lobbyId,
-      players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
+      numItems: lobby.numItems,
+      startedAt: lobby.startedAt,
+      score: player.score,
+      yourItems: player.items.map(i => ({
+        title: i.title,
+        category: i.category,
+        image: i.image,
+        price: i.price,
+        link: i.link,
+        found: i.found
+      })),
     });
+    } else {
+      return socket.emit("lobby:connected", {
+        lobbyId,
+        players: lobby.players.map(p => ({
+          playerId: p.playerId,
+          username: p.username,
+          host: p.host
+        }))
+      });
+    }
+
   });
 
   /**
@@ -176,9 +210,13 @@ io.on("connection", (socket) => {
 
       // Broadcast lobby players to both clients
       io.to(lobbyId).emit("lobby:joined", {
-        lobbyId,
-        players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
-      });
+      lobbyId,
+      players: lobby.players.map(p => ({
+      playerId: p.playerId,
+      username: p.username,
+      host: p.host
+    }))
+  });
 
       // If we have 2 players, we can start the game automatically.
       // if (lobby.players.length === 2) {
@@ -193,38 +231,74 @@ io.on("connection", (socket) => {
     }
   });
 
+  /**
+   * Host starts the game from the lobby page.
+   * Payload: { lobbyId, playerId }
+   */
   socket.on("game:start", async (payload) => {
-    lobby.status = "in_game";
-    lobby.startedAt = Date.now();
+    try {
+      const { lobbyId } = payload || {};
 
-    // IMPORTANT: Each player gets their own random list (your design decision).
-    // Pull random barcode items from SQLite
-    const items = await getRandomBarcodes(lobby.numItems);
 
-    // Store the full items list on the server (includes UPC)
-    // This is the authoritative truth for scan validation later.
-    p.items = items;
-    p.currentIndex = 0;
-    p.score = 0;
-    p.collectedUpcs = new Set();
+      const lobby = getLobby(lobbyId);
+      if (!lobby) {
+        return socket.emit("lobby:error", { message: "Lobby not found." });
+      }
 
-    // Send the client ONLY what they need to play (no UPC).
-    // If we send UPC, they can cheat easily.
-    io.to(lobbyId).emit("game:start", {
-      lobbyId,
-      numItems: lobby.numItems,
-      yourItems: items.map(i => ({
-        title: i.title,
-        category: i.category,
-        description: i.description,
-        image: i.image,
-        price: i.price,
-        link: i.link
-      }))
-    });
+      if (lobby.players.length < 2) {
+        return socket.emit("lobby:error", { message: "Need at least 2 players to start." });
+      }
 
-    console.log("🏁 Game started in lobby:", lobbyId);
+      if (lobby.status !== "waiting") {
+        return socket.emit("lobby:error", { message: "Game already started." });
+      }
+
+      lobby.status = "in_game";
+      lobby.startedAt = (Date.now() + 4000); // Start 4 seconds in the future to give clients time to load game page
+
+      // Generate the SAME item list for each player and store it server-side
+      const items = await getRandomBarcodes(lobby.numItems);
+
+      for (const p of lobby.players) {
+
+        p.items = items;
+        p.currentIndex = 0;
+        p.score = 0;
+        p.collectedUpcs = new Set();
+      }
+
+      // Tell everyone in the lobby room to move to the game page
+      io.to(lobbyId).emit("game:starting", {
+        lobbyId
+      });
+
+      console.log("🏁 Game started in lobby:", lobbyId);
+    } catch (err) {
+      console.error("game:start error:", err);
+      socket.emit("lobby:error", { message: "Failed to start game." });
+    }
   });
+    /**
+   * Game page asks server for this player's current game state.
+   * Payload: { lobbyId, playerId }
+   */
+  // socket.on("game:rejoin", (payload) => {
+  //   const { lobbyId, playerId } = payload || {};
+
+  //   if (!lobbyId || !playerId) {
+  //     return socket.emit("lobby:error", { message: "lobbyId and playerId required" });
+  //   }
+
+  //   const { lobby, player, error } = getLobbyAndPlayer(lobbyId, playerId, getLobby);
+  //   if (error) return socket.emit("lobby:error", { message: error });
+
+  //   // Join the socket room for future game events
+  //   socket.join(lobbyId);
+
+  //   const opponent = lobby.players.find(p => p.playerId !== playerId);
+
+    
+  // });
   /**
    * Client scanned a barcode and sends UPC to server.
    * Payload: { lobbyId, upc }
@@ -282,7 +356,11 @@ io.on("connection", (socket) => {
 
     // Search for a match anywhere in the player's item list
     const matchedItem = player.items.find((item) => {
-      return String(item.upc).trim() === scannedUpc;
+      if (String(item.upc).trim() === scannedUpc) {
+        item.found = true;
+        return true;
+      }
+      return false;
     });
 
     console.log("🎯 MATCHED ITEM:", matchedItem ? matchedItem.title : null);
@@ -324,6 +402,8 @@ io.on("connection", (socket) => {
         reason: "completed_items",
         durationMs
       });
+
+      removeLobby(lobbyId); // Clean up lobby from memory
 
       console.log(`🏆 Winner in lobby ${lobbyId}: ${player.playerId} time=${durationMs}ms`);
     }
@@ -398,6 +478,10 @@ io.on("connection", (socket) => {
     const lobby = getLobby(lobbyId);
     if (!lobby) return;
 
+    if (lobby.status === "in_game") {
+      return;
+    }
+
     const playerId = socket.playerId;
 
     console.log("❌ Disconnect:", playerId, "from lobby:", lobbyId);
@@ -407,6 +491,9 @@ io.on("connection", (socket) => {
     player.timeout = setTimeout(() => {
       leaveLobby(playerId);
       lobby.players = lobby.players.filter(p => p.playerId !== playerId);
+      if (lobby.players.length === 0) {
+        removeLobby(lobbyId);
+      }
       io.to(lobbyId).emit("lobby:joined", {
         lobbyId,
         players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
