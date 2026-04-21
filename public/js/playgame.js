@@ -8,7 +8,7 @@ let playerId = localStorage.getItem("playerId");
 // IF no player ID, they should not have gotten this far... kick em
 if (!playerId) {
   window.location.replace("/");
-}
+} 
 
 // Local Variables
 let items = [];
@@ -75,7 +75,7 @@ socket.on("game:state", (data) => {
     name: item.title,
     category: item.category,
     image: item.image,
-    found: false
+    found: item.found
   }));
 
 
@@ -308,6 +308,7 @@ socket.on("game:finish", (data) => {
     document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
     document.getElementById('win-overlay').classList.add('visible');
   } else {
+    document.getElementById('win-time-display').textContent = `⏱ ${formatTime(elapsedSecs)}`;
     document.getElementById('win-emoji').textContent = '😔';
     document.getElementById('win-title').textContent = 'YOU LOST';
     document.getElementById('win-sub').textContent   = 'Your opponent found everything first.';
