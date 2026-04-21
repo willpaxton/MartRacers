@@ -150,7 +150,8 @@ io.on("connection", (socket) => {
         category: i.category,
         image: i.image,
         price: i.price,
-        link: i.link
+        link: i.link,
+        found: i.found
       })),
     });
     } else {
@@ -336,7 +337,11 @@ io.on("connection", (socket) => {
 
     // Search for a match anywhere in the player's item list
     const matchedItem = player.items.find((item) => {
-      return String(item.upc).trim() === scannedUpc;
+      if (String(item.upc).trim() === scannedUpc) {
+        item.found = true;
+        return true;
+      }
+      return false;
     });
 
     console.log("🎯 MATCHED ITEM:", matchedItem ? matchedItem.title : null);
@@ -378,6 +383,8 @@ io.on("connection", (socket) => {
         reason: "completed_items",
         durationMs
       });
+
+      removeLobby(lobbyId); // Clean up lobby from memory
 
       console.log(`🏆 Winner in lobby ${lobbyId}: ${player.playerId} time=${durationMs}ms`);
     }
@@ -465,6 +472,9 @@ io.on("connection", (socket) => {
     player.timeout = setTimeout(() => {
       leaveLobby(playerId);
       lobby.players = lobby.players.filter(p => p.playerId !== playerId);
+      if (lobby.players.length === 0) {
+        removeLobby(lobbyId);
+      }
       io.to(lobbyId).emit("lobby:joined", {
         lobbyId,
         players: lobby.players.map(p => ({ playerId: p.playerId, username: p.username }))
