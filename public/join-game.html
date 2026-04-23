@@ -78,8 +78,19 @@
         if (e.target.value.length === 1 && nextInputId) {
           document.getElementById(nextInputId).focus();
         }
+      }),
+      input.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const pasteData = (e.clipboardData || window.clipboardData).getData("text").toUpperCase().replace(/[^A-Z]/g, "");
+        const inputs = document.querySelectorAll(".code-input");
+        inputs.forEach((input, index) => {
+          input.value = pasteData[index] || "";
+        });
+        inputs[inputs.length - 1].focus();
       });
     });
+
+
   </script>
 </body>
 </html>
