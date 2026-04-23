@@ -541,6 +541,6 @@ app.get("/debug/lobbies", (req, res) => {
   // })
   // .listen(3001);
 
-  server.listen(3000, () => console.log("✅ Listening on http://localhost:3000"));
+  server.listen(3000, () => console.log("✅ Listening on https://localhost:3000"));
 
   // repush for testing :D
