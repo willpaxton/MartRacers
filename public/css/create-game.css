@@ -60,12 +60,18 @@
   transition: border-color 0.15s;
 }
 
+.code-input {
+  width: 15.7%;
+  text-align: center;
+}
+
 .text-input:focus {
   border-color: var(--blue);
 }
 
 .text-input::placeholder {
   color: #444;
+  text-align: center;
 }
 
 /* ── PILL TOGGLE ── */

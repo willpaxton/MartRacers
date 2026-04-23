@@ -31,7 +31,12 @@
     <!-- Class Input for you to Enter the Game Code!! -->
     <div class="card">
       <label class="card-label">Game Code</label>
-      <input type="text" id="gameCode" class="text-input" placeholder="_ _ _ _ _ _" maxlength="6" />
+      <input type="text" name="first" class="text-input code-input" id="first" data-next="second" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
+      <input type="text" name="second" class="text-input code-input" id="second" data-next="third" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
+      <input type="text" name="third" class="text-input code-input" id="third" data-next="fourth" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
+      <input type="text" name="fourth" class="text-input code-input" id="fourth" data-next="fifth" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
+      <input type="text" name="fifth" class="text-input code-input" id="fifth" data-next="sixth" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
+      <input type="text" name="sixth" class="text-input code-input" id="sixth" data-next="sixth" placeholder="_" maxlength="1" oninput="this.value = this.value.toUpperCase();" />  
     </div>
 
     <!-- Start Button -->
@@ -48,8 +53,32 @@
     document.getElementById("joinGame").addEventListener("click", () => {
       let username = document.getElementById("name").value.trim();
       localStorage.setItem("username", username);
-      const gamecode = document.getElementById("gameCode").value.trim().toUpperCase() || "ERROR";
+      let gamecode = "";
+      document.querySelectorAll(".code-input").forEach(input => {
+        gamecode += input.value.trim().toUpperCase();
+      });
+      if (gamecode.length !== 6) {
+        alert("Please enter a valid 6-letter game code.");
+        return;
+      }
       window.location.replace("/lobby/" + gamecode);
+    });
+
+    document.querySelectorAll(".code-input").forEach(input => {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && e.target.value.length === 0) {
+          const prevInput = document.querySelector(`.code-input[data-next="${e.target.id}"]`);
+          if (prevInput) {
+            prevInput.select();
+          }
+        }
+      }), 
+      input.addEventListener("input", (e) => {
+        const nextInputId = e.target.getAttribute("data-next");
+        if (e.target.value.length === 1 && nextInputId) {
+          document.getElementById(nextInputId).focus();
+        }
+      });
     });
   </script>
 </body>

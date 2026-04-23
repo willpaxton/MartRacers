@@ -228,3 +228,17 @@
 #start-btn:active {
   transform: scale(0.97);
 }
+
+.back-btn {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  transition: color 0.15s;
+}
+
+.back-btn:hover {
+  color: var(--text);
+}
