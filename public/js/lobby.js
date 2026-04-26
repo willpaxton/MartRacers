@@ -12,6 +12,8 @@ if (!playerId) {
 }
 
 const playersEl = document.getElementById("players");
+const playersListEl = document.getElementById("players-list");
+const playerCountEl = document.getElementById("player-count");
 const lobbyIdEl = document.getElementById("lobbyId");
 const hostControlsEl = document.getElementById("hostControls");
 const startGameBtn = document.getElementById("startGameBtn");
@@ -38,6 +40,16 @@ function renderLobby(playersList) {
   playersEl.textContent = players.length
     ? players.map(p => p.username + (p.host ? " (Host)" : "")).join(", ")
     : "Waiting for players...";
+
+  playerCountEl.textContent = `${players.length} / 2`;
+  playersListEl.innerHTML = players.length
+    ? players.map(p => `<li>${p.username}${p.host ? " (Host)" : ""}</li>`).join("")
+    : `
+      <li class="players-empty">
+        <span>🕐</span>
+        Waiting for players…
+      </li>
+    `;
 
   const me = players.find(p => p.playerId === playerId);
   const amHost = !!me?.host;

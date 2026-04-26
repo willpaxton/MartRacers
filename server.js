@@ -159,20 +159,25 @@ io.on("connection", (socket) => {
     socket.playerId = playerId; // Attach playerId to socket for easy lookup on disconnect
 
     if (lobby.status === "in_game") {
+      const opponent = lobby.players.find(p => p.playerId !== playerId);
       return socket.emit("game:state", {
-      lobbyId,
-      numItems: lobby.numItems,
-      startedAt: lobby.startedAt,
-      score: player.score,
-      yourItems: player.items.map(i => ({
-        title: i.title,
-        category: i.category,
-        image: i.image,
-        price: i.price,
-        link: i.link,
-        found: i.found
-      })),
-    });
+        lobbyId,
+        numItems: lobby.numItems,
+        startedAt: lobby.startedAt,
+        score: player.score,
+        yourItems: player.items.map(i => ({
+          title: i.title,
+          category: i.category,
+          image: i.image,
+          price: i.price,
+          link: i.link,
+          found: i.found
+        })),
+        opponent: opponent ? {
+          username: opponent.username,
+          score: opponent.score
+        } : null
+      });
     } else {
       return socket.emit("lobby:connected", {
         lobbyId,
@@ -260,8 +265,7 @@ io.on("connection", (socket) => {
       const items = await getRandomBarcodes(lobby.numItems);
 
       for (const p of lobby.players) {
-
-        p.items = items;
+        p.items = items.map(item => ({ ...item }));
         p.currentIndex = 0;
         p.score = 0;
         p.collectedUpcs = new Set();
@@ -378,6 +382,8 @@ io.on("connection", (socket) => {
     // Correct item found and it hasn't been counted yet
     player.collectedUpcs.add(scannedUpc);
     player.score += 1;
+    console.log(player.collectedUpcs);
+    console.log(player);
 
     const remaining = lobby.numItems - player.score;
 
@@ -387,6 +393,12 @@ io.on("connection", (socket) => {
       score: player.score,
       remaining,
       matchedTitle: matchedItem.title || null
+    });
+
+    io.to(lobbyId).emit("game:opponentProgress", {
+      playerId: player.playerId,
+      username: player.username,
+      score: player.score
     });
 
     // Win condition

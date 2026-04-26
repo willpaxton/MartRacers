@@ -300,6 +300,12 @@ socket.on("game:scanResult", (data) => {
   }
 });
 // Changed the game over data// 
+socket.on("game:opponentProgress", (data) => {
+  if (data.playerId === playerId) return;
+  document.getElementById("opp-name").textContent = data.username || 'Opponent';
+  document.getElementById("opp-prog").textContent = `${data.score} / ${totalItems} found`;
+});
+
 socket.on("game:finish", (data) => {
   stopTimer();
   stopScanner();
