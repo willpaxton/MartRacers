@@ -35,17 +35,39 @@ socket.emit("lobby:rejoin", {
 function renderLobby(playersList) {
   players = playersList || [];
 
-  playersEl.textContent = players.length
-    ? players.map(p => p.username + (p.host ? " (Host)" : "")).join(", ")
-    : "Waiting for players...";
+  const list = document.getElementById('players-list');
+  const countBadge = document.getElementById('player-count');
+
+  list.innerHTML = '';
+
+  if (players.length === 0) {
+    list.innerHTML = `
+      <li class="players-empty">
+        <span>🕐</span>
+        Waiting for players…
+      </li>`;
+  } else {
+    players.forEach(player => {
+      const li = document.createElement('li');
+      li.className = 'player-row' + (player.host ? ' host' : '');
+      li.innerHTML = `
+        <div class="player-avatar">👤</div>
+        <div class="player-info">
+          <div class="player-name">${player.username}</div>
+          <div class="player-tag">${player.host ? 'Host' : 'Player'}</div>
+        </div>
+        <div class="player-status"></div>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  if (countBadge) countBadge.textContent = `${players.length} / 2`;
 
   const me = players.find(p => p.playerId === playerId);
   const amHost = !!me?.host;
 
-  // Only host can see the Start button
-  hostControlsEl.style.display = amHost ? "block" : "none";
-
-  // Optional: only enable start if 2+ players are present
+  hostControlsEl.style.display = amHost ? 'block' : 'none';
   startGameBtn.disabled = players.length < 2;
 }
 

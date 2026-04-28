@@ -381,6 +381,11 @@ io.on("connection", (socket) => {
 
     const remaining = lobby.numItems - player.score;
 
+    socket.to(lobbyId).emit("opponent:progress", {
+      found: player.score,
+      total: lobby.numItems
+    });
+
     socket.emit("game:scanResult", {
       lobbyId,
       correct: true,

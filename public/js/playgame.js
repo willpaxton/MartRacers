@@ -299,6 +299,10 @@ socket.on("game:scanResult", (data) => {
     shakeFirstUnfoundRow();
   }
 });
+socket.on("opponent:progress", (data) => {
+  document.getElementById('opp-prog').textContent = `${data.found} / ${totalItems} found`;
+});
+
 // Changed the game over data// 
 socket.on("game:finish", (data) => {
   stopTimer();
