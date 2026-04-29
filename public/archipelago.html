@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MartRacer — Archipelago</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/playgame.css">
+  <link rel="stylesheet" href="/css/archipelago.css">
+  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+</head>
+<body>
+
+  <!-- CONNECTION MODAL -->
+  <div id="connect-overlay">
+    <div class="connect-card">
+      <div class="logo-badge">Archipelago Mode</div>
+      <h1>Mart<span>Racer</span></h1>
+      <p class="tagline">Connect to your Archipelago game to start scanning.</p>
+      <div class="connect-form">
+        <div class="field-group">
+          <label class="card-label">Archipelago Server URL</label>
+          <input type="text" id="ap-server" class="text-input" placeholder="ws://localhost:38281" />
+        </div>
+        <div class="field-group">
+          <label class="card-label">Your Slot Name</label>
+          <input type="text" id="ap-slot" class="text-input" placeholder="Player1" />
+        </div>
+        <div class="field-group">
+          <label class="card-label">Password <span class="optional">(optional)</span></label>
+          <input type="text" id="ap-password" class="text-input" placeholder="Leave blank if none" />
+        </div>
+        <button class="btn btn-primary" id="ap-connect-btn">Connect</button>
+        <div id="connect-error" class="connect-error"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REALM UNLOCK BANNER -->
+  <div id="realm-banner">
+    <span id="realm-banner-text"></span>
+    <button id="realm-banner-close">✕</button>
+  </div>
+
+  <!-- IMAGE OVERLAY -->
+  <div id="img-overlay">
+    <div id="img-overlay-card">
+      <img id="img-overlay-photo" alt="">
+      <div id="img-overlay-title"></div>
+      <div id="img-overlay-sub"></div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">MART<span>RACER</span></div>
+    <div id="ap-status-badge">
+      <div class="opp-pip away" id="ap-pip"></div>
+      <div>
+        <div id="ap-slot-display">Not Connected</div>
+        <div id="ap-game-display">Archipelago</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="disconnect-btn" style="display:none">Disconnect</button>
+  </header>
+
+  <!-- PROGRESS BAR -->
+  <div id="progress-bar-wrap">
+    <div id="progress-track">
+      <div id="progress-fill"></div>
+    </div>
+    <div id="progress-label">
+      <b id="found-count">0</b> / <span id="total-count">0</span> &nbsp;·&nbsp; <span id="list-pill">0 remaining</span>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <main>
+
+    <!-- LEFT: Item List -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Available Items</h2>
+        <span class="pill" id="list-pill-head">0 remaining</span>
+      </div>
+      <div class="panel-body">
+        <div class="search-wrap">
+          <input type="text" id="item-search" class="text-input" placeholder="🔍  Search items…" />
+        </div>
+        <ul id="item-list">
+          <li class="players-empty"><span>⏳</span>Connect to Archipelago to see your items.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT: Scanner -->
+    <div class="panel scanner-panel">
+      <div class="panel-head">
+        <h2>Scanner</h2>
+        <span class="pill green" id="scanner-status-pill">Ready</span>
+      </div>
+      <div class="panel-body">
+
+        <div id="scanner-viewport">
+          <div class="scan-crosshair">
+            <div class="scan-line"></div>
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+          </div>
+        </div>
+
+        <div id="scan-status">Press "Start Scanner" to begin scanning</div>
+
+        <div class="scanner-btns">
+          <button class="btn btn-primary" id="start-scanner">Start Scanner</button>
+          <button class="btn btn-danger"  id="stop-scanner" disabled>Stop</button>
+        </div>
+
+        <div id="manual-section">
+          <input type="text" id="manual-upc" placeholder="Enter UPC barcode…" maxlength="14" />
+          <button class="btn-submit-upc" id="submit-upc">Check</button>
+        </div>
+        <button class="btn btn-ghost" id="toggle-manual">✏️ Enter UPC Manually</button>
+
+        <!-- Recent scans log -->
+        <div id="scan-log-wrap">
+          <div class="scan-log-head">Recent Scans</div>
+          <ul id="scan-log"></ul>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast"></div>
+
+  <script src="/js/archipelago.js"></script>
+</body>
+</html>

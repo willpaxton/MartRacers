@@ -234,19 +234,44 @@ function renderItemList() {
     status.className = 'item-status';
     status.textContent = item.found ? '✅' : '';
 
+    // Skip button
+    const skipBtn = document.createElement('button');
+    skipBtn.className = 'btn-skip';
+    skipBtn.textContent = 'Skip';
+    skipBtn.title = 'Skip this item';
+    skipBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // prevent opening the image overlay
+      skipItem(i);
+    });
+
     main.appendChild(num);
     main.appendChild(thumbEl);
     main.appendChild(info);
 
     li.appendChild(main);
     li.appendChild(status);
+    li.appendChild(skipBtn);
 
     // Whole row opens the enlarged image
     li.addEventListener('click', () => {
       openImageOverlay(item);
     });
 
+
+
     ul.appendChild(li);
+  });
+}
+
+function skipItem(index) {
+  if (items[index].found || items[index].skipped) return;
+  items[index].skipped = true;
+  showToast(`⏭ Skipping…`, '');
+
+  socket.emit("game:skipItem", {
+    lobbyId,
+    playerId,
+    itemIndex: index
   });
 }
 
@@ -325,6 +350,20 @@ socket.on("game:finish", (data) => {
     document.getElementById('win-sub').textContent   = 'Your opponent found everything first.';
     document.getElementById('win-overlay').classList.add('visible');
   }
+});
+
+socket.on("game:itemReplaced", (data) => {
+  // Server sends back itemIndex and newItem
+  items[data.itemIndex] = {
+    name: data.newItem.title,
+    category: data.newItem.category,
+    image: data.newItem.image,
+    found: false,
+    skipped: false
+  };
+
+  renderItemList();
+  showToast(`🔄 New item: ${data.newItem.title}`, '');
 });
 // #endregion
 
