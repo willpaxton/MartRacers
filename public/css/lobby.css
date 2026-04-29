@@ -11,7 +11,13 @@
   padding: 20px 24px;
   text-align: center;
   margin-bottom: 20px;
+  font-size: x-large;
   width: 100%;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  overflow: visible;
+  gap: 5%;
 }
 
 #lobbyId .code-label {
@@ -39,6 +45,23 @@
   letter-spacing: 0.4px;
 }
 
+#copy {
+  background: none;
+  max-width: 20%;
+  justify-self: center;
+}
+
+#copy span {
+  background: none;
+  color: white;
+  font-size: 2rem;
+  transform: translate(-30%);
+}
+
+.tooltip {
+  z-index: 9999 !important;
+}
+
 /* ── PLAYERS CARD ── */
 #players {
   background: #111;
@@ -46,6 +69,7 @@
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 20px;
+  margin-top: 20px;
   width: 100%;
 }
 
@@ -180,7 +204,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 16px 0 8px;
+  padding: 8px 0 16px;
 }
 
 .waiting-dots span {

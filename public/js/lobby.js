@@ -21,7 +21,37 @@ socket.onAny((event, data) => {
 });
 
 // Show lobby ID on page
-lobbyIdEl.textContent = lobbyId;
+lobbyIdEl.firstElementChild.textContent = lobbyId;
+
+// copy lobbyid
+
+
+// Initialize the Bootstrap Tooltip
+const copyBtn = document.getElementById('copy');
+const tooltip = new bootstrap.Tooltip(copyBtn);
+
+// const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+// const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+copyBtn.addEventListener('click', () => {
+
+  // Copy text to clipboard
+  navigator.clipboard.writeText(lobbyId).then(() => {
+    // 1. Change the tooltip content to "Copied!"
+    copyBtn.setAttribute('data-bs-original-title', 'Copied!');
+    tooltip.setContent({ '.tooltip-inner': 'Copied!' });
+    
+    // 2. Show the updated tooltip
+    tooltip.show();
+
+    // 3. Reset the tooltip after 2 seconds
+    setTimeout(() => {
+      tooltip.hide();
+      copyBtn.setAttribute('data-bs-original-title', 'Copy to clipboard');
+      tooltip.setContent({ '.tooltip-inner': 'Copy to clipboard' });
+    }, 2000);
+  });
+});
 
 // Ask server if this user is already in the lobby (refresh case)
 socket.emit("lobby:rejoin", {

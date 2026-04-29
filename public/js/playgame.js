@@ -17,6 +17,8 @@ let foundCount = 0;
 let scannerActive = false;
 let elapsedSecs = 0;
 let timerInterval = null;
+let bestOpponentScore = 0;
+let bestOpponentName = null;
 const imgOverlay = document.getElementById('img-overlay');
 const imgOverlayPhoto = document.getElementById('img-overlay-photo');
 const imgOverlayTitle = document.getElementById('img-overlay-title');
@@ -300,7 +302,12 @@ socket.on("game:scanResult", (data) => {
   }
 });
 socket.on("opponent:progress", (data) => {
-  document.getElementById('opp-prog').textContent = `${data.found} / ${totalItems} found`;
+  if (data.found > bestOpponentScore) {
+    bestOpponentName = data.playerName;
+    bestOpponentScore = data.found;
+  }
+  document.getElementById('opp-name').textContent = bestOpponentName || 'Opponent';
+  document.getElementById('opp-prog').textContent = `${bestOpponentScore} / ${totalItems} found`;
 });
 
 // Changed the game over data// 
