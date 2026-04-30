@@ -870,3 +870,70 @@ main {
   font-size: 13px;
   color: rgba(255,255,255,0.7);
 }
+/* ── ITEM DETAIL OVERLAY — rich content styles ── */
+#img-overlay-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#img-overlay-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-realm {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #FFC220;
+}
+
+.detail-barcode {
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .06em;
+  color: #6b7491;
+  font-size: .8rem;
+}
+
+.detail-price {
+  font-weight: 600;
+  color: #2ecc7a;
+  font-size: .9rem;
+}
+
+.detail-desc {
+  font-size: .8rem;
+  color: rgba(255,255,255,0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.detail-link {
+  color: #0071CE;
+  font-size: .82rem;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+}
+
+#img-overlay-photo.loading {
+  background: linear-gradient(90deg, #1c2235 25%, #252d42 50%, #1c2235 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  min-height: 160px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
