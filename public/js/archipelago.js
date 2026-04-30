@@ -16,28 +16,20 @@
 // ─────────────────────────────────────────────
 
 const REALM_NAMES = [
-  "Realm of the Harvest Table",
-  "Realm of the Garden",
-  "Realm of the Loyal Hounds",
+  "Realm of the Baked Goods and Brews",
+  "Realm of the Hearth and Garden",
   "Realm of the Tiny Adventurers",
-  "Realm of the Tiny Healers",
-  "Realm of the Celebrants",
-  "Realm of the Hearth",
-  "Realm of the Curious Critters",
-  "Realm of the Brews",
-  "Realm of the Builders",
+  "Realm of the Loyal Companions",
   "Realm of the Wellness Wizards",
-  "Realm of the Groomed Ones",
-  "Realm of Endless Play",
-  "Realm of the Sweet Tooth",
-  "Realm of the Fashioned Ones",
-  "Realm of the Baked Goods",
-  "Realm of the Sparking Circuits",
   "Realm of the Creative Spirits",
+  "Realm of Endless Play",
+  "Realm of the Fashioned Ones",
+  "Realm of the Builders",
+  "Realm of the Sparking Circuits",
   "Realm of the Mighty Athletes",
-  "Realm of the Forgotten Finds",
   "Realm of the Watchful Eye",
   "Realm of the Wanderers",
+  "Realm of the Forgotten Finds",
 ];
 
 const SECRET_REALM = "Realm of the Grand Register";
