@@ -2,17 +2,6 @@
 # A. This file contains options which allow you to configure your multiworld experience while allowing
 #    others to play how they want as well.
 #
-# Q. How do I use it?
-# A. The options in this file are weighted. This means the higher number you assign to a value, the
-#    more chances you have for that option to be chosen. For example, an option like this:
-#
-#    map_shuffle:
-#      on: 5
-#      off: 15
-#
-#    Means you have 5 chances for map shuffle to occur, and 15 chances for map shuffle to be turned
-#    off.
-#
 # Q. I've never seen a file like this before. What characters am I allowed to use?
 # A. This is a .yaml file. You are allowed to use most characters.
 #    To test if your yaml is valid or not, you can use this website:
@@ -20,52 +9,28 @@
 #    You can also verify that your Archipelago options are valid at this site:
 #        https://archipelago.gg/check
 
-# Your name in-game, limited to 16 characters.
-#     {player} will be replaced with the player's slot number.
-#     {PLAYER} will be replaced with the player's slot number, if that slot number is greater than 1.
-#     {number} will be replaced with the counter value of the name.
-#     {NUMBER} will be replaced with the counter value of the name, if the counter value is greater than 1.
-name: Enter_Player_Name_Here_{player}
+name: Player_Name{player_name}
 
-# Used to describe your yaml. Useful if you have multiple files.
-description: Default MartRacers Template
+description: MartRacers Template
 
-game: MarTracers
+game: MartRacers
 requires:
-  version: 0.6.6 # Version of Archipelago required for this yaml to work as expected.
+  version: 0.6.6
 
-MarTracers:
+MartRacers:
   ################
   # Game Options #
   ################
   progression_balancing:
-    # A system that can move progression earlier, to try and prevent the player from getting stuck and bored early.
-    # 
-    # A lower setting means more getting stuck. A higher setting means less getting stuck.
-    #
-    # You can define additional values between the minimum and maximum values.
-    # Minimum value is 0
-    # Maximum value is 99
-    random: 0
-    random-low: 0 # random value weighted towards lower values
-    random-high: 0 # random value weighted towards higher values
-    random-range-0-99: 0 # random value between 0 and 99
-    disabled: 0 # equivalent to 0
-    normal: 50 # equivalent to 50
-    extreme: 0 # equivalent to 99
+    # Higher = realm unlocks appear earlier in the multiworld.
+    # Minimum 0, Maximum 99
+    normal: 50
 
   accessibility:
-    # Set rules for reachability of your items/locations.
-    # 
-    # **Full:** ensure everything can be reached and acquired.
-    # 
-    # **Minimal:** ensure what is needed to reach your goal can be acquired.
     full: 50
     minimal: 0
 
   win_condition:
-    # Choose what it takes to win MartRacers.
-    # 
     # scan_target_item   - Find and scan a specific barcode (set target_barcode).
     # scan_percentage    - Scan a percentage of all available items (set scan_percentage_required).
     # unlock_all_realms  - Unlock every realm and then discover the secret Grand Register realm.
@@ -74,98 +39,63 @@ MarTracers:
     unlock_all_realms: 50
 
   target_barcode:
-    # When Win Condition is 'scan_target_item', enter the exact barcode number of the item
-    # that must be scanned to win. Leave empty to pick a random item.
+    # Only used when win_condition is scan_target_item.
     '': 50
 
   scan_percentage_required:
-    # When Win Condition is 'scan_percentage', what percentage of all items (locations)
-    # must be scanned before victory is granted.
-    #
-    # You can define additional values between the minimum and maximum values.
-    # Minimum value is 10
-    # Maximum value is 100
+    # Only used when win_condition is scan_percentage.
+    # Minimum 10, Maximum 100
     75: 50
-    random: 0
-    random-low: 0 # random value weighted towards lower values
-    random-high: 0 # random value weighted towards higher values
-    random-range-10-100: 0 # random value between 10 and 100
 
   starting_realm:
-    # Which realm the player begins in. 'random' picks one at game start.
+    # Which realm the player begins in. random picks one at game start.
     random: 50
-    realm_of_the_harvest_table: 0
-    realm_of_the_garden: 0
-    realm_of_the_loyal_hounds: 0
+    realm_of_the_baked_goods_and_brews: 0
+    realm_of_the_hearth_and_garden: 0
     realm_of_the_tiny_adventurers: 0
-    realm_of_the_tiny_healers: 0
-    realm_of_the_celebrants: 0
-    realm_of_the_hearth: 0
-    realm_of_the_curious_critters: 0
-    realm_of_the_brews: 0
-    realm_of_the_builders: 0
+    realm_of_the_loyal_companions: 0
     realm_of_the_wellness_wizards: 0
-    realm_of_the_groomed_ones: 0
-    realm_of_endless_play: 0
-    realm_of_the_sweet_tooth: 0
-    realm_of_the_fashioned_ones: 0
-    realm_of_the_baked_goods: 0
-    realm_of_the_sparking_circuits: 0
     realm_of_the_creative_spirits: 0
+    realm_of_endless_play: 0
+    realm_of_the_fashioned_ones: 0
+    realm_of_the_builders: 0
+    realm_of_the_sparking_circuits: 0
     realm_of_the_mighty_athletes: 0
-    realm_of_the_forgotten_finds: 0
     realm_of_the_watchful_eye: 0
     realm_of_the_wanderers: 0
+    realm_of_the_forgotten_finds: 0
 
   items_given:
-    # How many realm-unlock items are pre-collected and given to the player at the start.
-    # 0 means the player starts with only their starting realm.
-    # Max is 21 (all non-secret realms minus the starting one).
-    #
-    # You can define additional values between the minimum and maximum values.
-    # Minimum value is 0
-    # Maximum value is 21
+    # How many realm-unlock items are pre-collected at the start.
+    # 0 = start with only your starting realm. Max is 13.
     0: 50
-    random: 0
-    random-low: 0 # random value weighted towards lower values
-    random-high: 0 # random value weighted towards higher values
-    random-range-0-21: 0 # random value between 0 and 21
 
   ###########################
   # Item & Location Options #
   ###########################
   local_items:
-    # Forces these items to be in their native world.
     []
 
   non_local_items:
-    # Forces these items to be outside their native world.
     []
 
   start_inventory:
-    # Start with the specified amount of these items. Example: "Bomb: 1"
     {}
 
   start_hints:
-    # Start with these item's locations prefilled into the ``!hint`` command.
     []
 
   start_location_hints:
-    # Start with these locations and their item prefilled into the ``!hint`` command.
     []
 
   exclude_locations:
-    # Prevent these locations from having an important item.
     []
 
   priority_locations:
-    # Prevent these locations from having an unimportant item.
     []
 
   item_links:
-    # Share part of your item pool with other players.
     []
 
   plando_items:
-    # Generic items plando.
     []
