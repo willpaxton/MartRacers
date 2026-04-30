@@ -248,6 +248,9 @@ io.on("connection", (socket) => {
         title: i.title,
         category: i.category,
         image: i.image,
+        realm: i.realm,
+        upc: i.upc,
+        description: i.description,
         price: i.price,
         link: i.link,
         found: i.found
@@ -547,6 +550,9 @@ io.on("connection", (socket) => {
         title: replacement.title,
         category: replacement.category,
         image: replacement.image,
+        realm: replacement.realm,
+        upc: replacement.upc,
+        description: replacement.description,
         price: replacement.price,
         link: replacement.link
       }

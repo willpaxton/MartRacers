@@ -26,12 +26,40 @@ const imgOverlaySub = document.getElementById('img-overlay-sub');
 
 
 function openImageOverlay(item) {
-  if (!item || !item.image) return;
+  if (!item) return;
 
-  imgOverlayPhoto.src = item.image;
-  imgOverlayPhoto.alt = item.name || 'Item image';
   imgOverlayTitle.textContent = item.name || 'Item';
-  imgOverlaySub.textContent = item.category || '';
+
+  // Build rich subtitle with realm, barcode, price, description, link
+  let subHTML = '';
+  if (item.realm) {
+    subHTML += `<span class="detail-realm">${item.realm}</span>`;
+  }
+  if (item.barcode) {
+    subHTML += `<span class="detail-barcode">Barcode: ${item.barcode}</span>`;
+  }
+  if (item.price) {
+    subHTML += `<span class="detail-price">$${Number(item.price).toFixed(2)}</span>`;
+  }
+  if (item.description) {
+    subHTML += `<span class="detail-desc">${item.description}</span>`;
+  }
+  if (item.link) {
+    subHTML += `<a class="detail-link" href="${item.link}" target="_blank" rel="noopener">View on Walmart ↗</a>`;
+  }
+  imgOverlaySub.innerHTML = subHTML;
+
+  if (item.image) {
+    imgOverlayPhoto.src = item.image;
+    imgOverlayPhoto.alt = item.name || 'Item image';
+    imgOverlayPhoto.style.display = 'block';
+    imgOverlayPhoto.classList.add('loading');
+    imgOverlayPhoto.onload  = () => imgOverlayPhoto.classList.remove('loading');
+    imgOverlayPhoto.onerror = () => imgOverlayPhoto.classList.remove('loading');
+  } else {
+    imgOverlayPhoto.style.display = 'none';
+  }
+
   imgOverlay.classList.add('open');
 }
 
@@ -77,6 +105,11 @@ socket.on("game:state", (data) => {
     name: item.title,
     category: item.category,
     image: item.image,
+    realm: item.realm,
+    barcode: item.upc || item.barcode,
+    price: item.price,
+    description: item.description,
+    link: item.link,
     found: item.found
   }));
 

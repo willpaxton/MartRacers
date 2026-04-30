@@ -108,7 +108,7 @@ function connectToAP() {
   apSocket.onopen = () => {
     apSocket.send(JSON.stringify([{
       cmd:            "Connect",
-      game:           "MartRacers",
+      game:           "MarTracers",
       name:           slotName,
       password:       password || "",
       uuid:           crypto.randomUUID(),
@@ -161,13 +161,13 @@ function handlePacket(pkt) {
 
       // Ask for the item/location name↔id table first, THEN sync.
       // DataPackage handler will drain any queued ReceivedItems once names are ready.
-      apSocket.send(JSON.stringify([{ cmd: "GetDataPackage", games: ["MartRacers"] }]));
+      apSocket.send(JSON.stringify([{ cmd: "GetDataPackage", games: ["MarTracers"] }]));
       apSocket.send(JSON.stringify([{ cmd: "Sync" }]));
       break;
     }
 
     case "DataPackage": {
-      const gameData = pkt.data && pkt.data.games && pkt.data.games.MartRacers;
+      const gameData = pkt.data && pkt.data.games && pkt.data.games.MarTracers;
       if (!gameData) break;
       for (const [name, id] of Object.entries(gameData.item_name_to_id || {})) {
         itemIdToName[id] = name;
