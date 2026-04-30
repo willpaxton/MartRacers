@@ -152,6 +152,25 @@ app.get("/archipelago/locations", (req, res) => {
 });
 
 /**
+ * GET /archipelago/item/:barcode
+ * Returns full item details for a single barcode (image, price, description, link).
+ */
+app.get("/archipelago/item/:barcode", (req, res) => {
+  const barcode = String(req.params.barcode).trim();
+  const sql = `
+    SELECT barcode_number AS upc, title, category, description, image, price, link
+    FROM   BARCODES
+    WHERE  barcode_number = ?
+    LIMIT  1
+  `;
+  apDb.get(sql, [barcode], (err, row) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (!row) return res.status(404).json({ error: "Item not found" });
+    res.json(row);
+  });
+});
+
+/**
  * Helper: find the lobby + player record for the current socket.
  * This keeps the scan logic clean and avoids repeating the same lookup code.
  */
