@@ -2,6 +2,13 @@
 
 Project Link: https://martracers.quaglabs.net
 
+To Run Project, you will need Node.JS. In the project folder, run:
+```
+npm install
+node server.js
+```
+Connect clients to the server printed out in the console :D
+
 Product Vision Statement: For shoppers who need a more entertaining shopping experience when they go to their favorite superstore. The MartRacers Web Application is a Web Application revolving around racing around grocery stores to try to scan certain items the quickest. This is a first-of-its-kind app that has never been done before, and probably won’t be done again.
 
 Project Goal: To create a multiplayer based-game utilizing new frameworks that the team is unfamiliar with that has real-time communication between client and server and works between mulitple devices.  The game should also have lobbies and the way to find games or "matchmake."
@@ -13,7 +20,7 @@ Release Plan: Our initial release plan had us doing Basic Server/Client testing 
 - Sprint 8: Finalize gameplay loop (for release v0.1.0) and integrate front-end into product.
 - Sprint 9: Focus on bug fixes and polishing the game, receive feedback from all members about last changes.
 - Sprint 10: Finish up documentation and deliverables.
-Update (4/16/2026): Sprint 9 is marking the end of development of the product, leading to our first release.  Although our release plan did not work out 1:1 of how we planned, we still are ready to spend Sprint 10 on documentation, bug fixes, and any other final elements to the project.
+Update (4/16/2026): Sprint 9 is marking the end of development of the product, leading to our first release. Although our release plan did not work out 1:1 of how we planned, we still are ready to spend Sprint 10 on documentation, bug fixes, and any other final elements to the project.
 Final Update: We followed this release plan fairly closely, with getting the MVP done by sprint 8, with bug fixes and deliverables being a focus in sprints 9 and 10.   
 
 Sprint Reports are located in the main branch under the "Sprint_Reports" folder.
@@ -34,7 +41,7 @@ Documenation Standards: Documents follow templates shared around the team.  Docu
 
 Development Environment:  The project is built on top of Node.JS.  The server is a Node.JS application which is able to serve up a webpage created in HTML/CSS.  The server utilizes the Socket.IO platform in order to facilitate real-time client-server communication for the game.  The server also utilizes a SQLite database for product and gameplay data storage.  
 
-Deployment Environment: The project is currently ran manually using a command-line interface.  We hope to implement containerization in a future sprint.  
+Deployment Environment: The project is currently ran manually using a command-line interface.
 
 Version Management:
 Right now, as soon as we finish with our prototype, it will be published as version 0.1.0.  Our prototype is currently at version 0.0.3.  
@@ -85,8 +92,13 @@ Detailed Design:
 Database Design:
 
 ![MartRacers_ERD](https://github.com/user-attachments/assets/d5418983-b085-4c50-9428-b682640f50e6)
-
+The users section of the database was scrapped due to features that we believed were outside of our MVP.
 
 UI/UX Design:
 ![Image_3-12-26_at_9 36_AM](https://github.com/user-attachments/assets/ac9dc856-8b69-4563-9e28-a00fb45292eb)
 ![Image_3-12-26_at_9 35_AM](https://github.com/user-attachments/assets/d89f11fb-253a-4ac3-afb7-1ef7243dbc55)
+Final UI/UX Designs:
+<img width="519" height="446" alt="Screenshot 2026-05-03 061619" src="https://github.com/user-attachments/assets/7b237cfa-567a-411c-9bf7-52a6b8044e6f" />
+<img width="445" height="596" alt="Screenshot 2026-05-03 061650" src="https://github.com/user-attachments/assets/e8cc7cb8-de3c-48ab-b337-3dfdd9384ba4" />
+<img width="1092" height="672" alt="Screenshot 2026-05-03 061639" src="https://github.com/user-attachments/assets/de9785bd-0a39-434d-9a5b-da68ca1b0731" />
+
