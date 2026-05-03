@@ -17,7 +17,7 @@ For shoppers who need a more entertaining shopping experience when they go to th
 To create a multiplayer based-game utilizing new frameworks that the team is unfamiliar with that has real-time communication between client and server and works between mulitple devices.  The game should also have lobbies and the way to find games or "matchmake."
 Note: Matchmaking was dropped during development as it fell out of scope with the time we had to complete the project.
 
-$$$Release Plan: 
+### Release Plan: 
 Our initial release plan had us doing Basic Server/Client testing within this sprint.  We are currently ahead of schedule, as we tested our prototype in Sprint 4 and are now developing the rest of the game logic this sprint and next sprint.  Our release plan now looks like this:
 - Sprint 6: Finish implementing game logic
 - Sprint 7: Creating Win Conditions for Players and finish prototypes for front-end
