@@ -25,13 +25,14 @@ Final Update: We followed this release plan fairly closely, with getting the MVP
 
 Sprint Reports are located in the main branch under the "Sprint_Reports" folder.
 
-Kanban board is located under GitHub projects; however, it is inaccessible to people outside of the project team.  This is the state of the Kanban board as of 3/12/2026.
+Kanban board is located under GitHub projects and can be found on the Projects tab of the repository, or at https://github.com/users/willpaxton/projects/2
 Midterm 1 Kanban Board:
 <img width="1685" height="966" alt="image" src="https://github.com/user-attachments/assets/daaa73cf-d8f9-42e0-84f1-4c1bec322635" />
 Midterm 2 Kanban Board:
 <img width="1341" height="423" alt="image" src="https://github.com/user-attachments/assets/86459d4f-b869-4b9b-941a-cfac635112dd" />
 Final Kanban Board:
 <img width="1820" height="762" alt="image" src="https://github.com/user-attachments/assets/53926f4e-c2f6-4cf3-9bc7-2d48fbdd9131" />
+
 
 Source Code: Source code is split into two primary branches, one for front-end development (FrontEnd) and one for back-end/prototyping (prototype).  These two branches will be merged in a future sprint as we work towards a final deliverable.  
 
